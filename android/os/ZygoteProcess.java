@@ -284,6 +284,9 @@ public class ZygoteProcess {
              * After the zygote process reads these it will write the pid of
              * the child or -1 on failure, followed by boolean to
              * indicate whether a wrapper process was used.
+             * 请参阅 com.android.internal.os.SystemZygoteInit.readArgumentList()
+             * 目前，zygote 进程的连线格式是：a) 参数计数（本质上是 argc）b) 多个换行符分隔的参数字符串等于计数之后zygote
+             * 进程读取这些它会写入子进程的 pid 或失败时的 -1，然后是布尔值以指示是否使用了包装进程。
              */
             final BufferedWriter writer = zygoteState.writer;
             final DataInputStream inputStream = zygoteState.inputStream;
