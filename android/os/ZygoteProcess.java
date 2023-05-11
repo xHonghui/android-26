@@ -308,6 +308,7 @@ public class ZygoteProcess {
             // Always read the entire result from the input stream to avoid leaving
             // bytes in the stream for future process starts to accidentally stumble
             // upon.
+            //始终从输入流中读取整个结果，以避免在流中留下字节以备将来进程启动时意外发现。
             result.pid = inputStream.readInt();
             result.usingWrapper = inputStream.readBoolean();
 
@@ -316,6 +317,7 @@ public class ZygoteProcess {
             }
             return result;
         } catch (IOException ex) {
+            //关闭socket
             zygoteState.close();
             throw new ZygoteStartFailedEx(ex);
         }
