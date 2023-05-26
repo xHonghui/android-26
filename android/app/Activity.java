@@ -4466,8 +4466,11 @@ public class Activity extends ContextThemeWrapper
      */
     public void startActivityForResult(@RequiresPermission Intent intent, int requestCode,
             @Nullable Bundle options) {
+        //mParent 表示当前任务栈中当前Activity的前一个Activity节点，如果根活动还没创建，则mParent==null
         if (mParent == null) {
+            //根 Activity
             options = transferSpringboardActivityOptions(options);
+            //调用 Instrumentation 的 execStartActivity 方法启动根Activity
             Instrumentation.ActivityResult ar =
                 mInstrumentation.execStartActivity(
                     this, mMainThread.getApplicationThread(), mToken, this,
@@ -4491,6 +4494,7 @@ public class Activity extends ContextThemeWrapper
             cancelInputsAndStartExitTransition(options);
             // TODO Consider clearing/flushing other event sources and events for child windows.
         } else {
+            // 非根 Activity
             if (options != null) {
                 mParent.startActivityFromChild(this, intent, requestCode, options);
             } else {
@@ -4783,6 +4787,7 @@ public class Activity extends ContextThemeWrapper
      */
     @Override
     public void startActivity(Intent intent, @Nullable Bundle options) {
+        //一般情况下 option=null
         if (options != null) {
             startActivityForResult(intent, -1, options);
         } else {

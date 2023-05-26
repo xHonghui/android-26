@@ -193,6 +193,10 @@ public class ZygoteProcess {
      * @return An object that describes the result of the attempt to start the process.
      * @throws RuntimeException on fatal start failure
      */
+    /**
+     * 开启新进程
+     * @param processClass : 新进程主线程入口（"android.app.ActivityThread"）
+     * */
     public final Process.ProcessStartResult start(final String processClass,
                                                   final String niceName,
                                                   int uid, int gid, int[] gids,
@@ -343,6 +347,10 @@ public class ZygoteProcess {
      * @return An object that describes the result of the attempt to start the process.
      * @throws ZygoteStartFailedEx if process start failed for any reason
      */
+    /**
+     * 开启新进程
+     * @param processClass : 新进程主线程入口（"android.app.ActivityThread"）
+     * */
     private Process.ProcessStartResult startViaZygote(final String processClass,
                                                       final String niceName,
                                                       final int uid, final int gid,
@@ -361,6 +369,7 @@ public class ZygoteProcess {
 
         // --runtime-args, --setuid=, --setgid=,
         // and --setgroups= must go first
+        // 创建字符串列表 argsForZygote，并将启动应用进程的启动参数存放其中
         argsForZygote.add("--runtime-args");
         argsForZygote.add("--setuid=" + uid);
         argsForZygote.add("--setgid=" + gid);
@@ -446,7 +455,7 @@ public class ZygoteProcess {
         }
 
         synchronized(mLock) {
-            //openZygoteSocketIfNeeded(abi)：如有必要，打开与zygote进程连接的socket套接字，返回的 ZygoteState 对象则是维持与 zygote 进程通讯的对象
+            //openZygoteSocketIfNeeded(abi)：如有必要，打开与zygote进程连接的socket套接字，返回的 ZygoteState 对象则是维持与 Zygote 进程通讯的对象（Socket）
             return zygoteSendArgsAndGetResult(openZygoteSocketIfNeeded(abi), argsForZygote);
         }
     }

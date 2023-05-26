@@ -65,6 +65,7 @@ public final class Zygote {
     private Zygote() {}
 
     /**
+     * fork当前进程创建子进程
      * Forks a new VM instance.  The current VM must have been started
      * with the -Xzygote flag. <b>NOTE: new instance keeps all
      * root capabilities. The new process is expected to call capset()</b>.
@@ -101,7 +102,9 @@ public final class Zygote {
           int[] fdsToIgnore, String instructionSet, String appDataDir) {
         VM_HOOKS.preFork();
         // Resets nice priority for zygote process.
+        // 重置 zygote 进程的优先级。
         resetNicePriority();
+        //todo 调用native方法fork子进程，并返回进程id
         int pid = nativeForkAndSpecialize(
                   uid, gid, gids, debugFlags, rlimits, mountExternal, seInfo, niceName, fdsToClose,
                   fdsToIgnore, instructionSet, appDataDir);
@@ -116,6 +119,9 @@ public final class Zygote {
         return pid;
     }
 
+    /**
+     * native 方法，fork子进程
+     * */
     native private static int nativeForkAndSpecialize(int uid, int gid, int[] gids,int debugFlags,
           int[][] rlimits, int mountExternal, String seInfo, String niceName, int[] fdsToClose,
           int[] fdsToIgnore, String instructionSet, String appDataDir);
@@ -151,6 +157,7 @@ public final class Zygote {
         int pid = nativeForkSystemServer(
                 uid, gid, gids, debugFlags, rlimits, permittedCapabilities, effectiveCapabilities);
         // Enable tracing as soon as we enter the system_server.
+        // 我们一进入 system_server 就启用跟踪。
         if (pid == 0) {
             Trace.setTracingEnabled(true);
         }
@@ -237,6 +244,7 @@ public final class Zygote {
 
         public void run() {
             try {
+                //新进程子线程入口，ActivityThread main()
                 mMethod.invoke(null, new Object[] { mArgs });
             } catch (IllegalAccessException ex) {
                 throw new RuntimeException(ex);

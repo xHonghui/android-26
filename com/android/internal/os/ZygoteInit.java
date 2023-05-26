@@ -445,6 +445,7 @@ public class ZygoteInit {
 
     /**
      * Finish remaining work for the newly forked system server process.
+     * 完成新派生的系统服务器进程的剩余工作。
      */
     private static void handleSystemServerProcess(
             ZygoteConnection.Arguments parsedArgs)
@@ -505,6 +506,7 @@ public class ZygoteInit {
 
             /*
              * Pass the remaining arguments to SystemServer.
+             * 将剩余的参数传递给 SystemServer。完成启动SystemServer进程剩余的工作（进程主入口？）
              */
             ZygoteInit.zygoteInit(parsedArgs.targetSdkVersion, parsedArgs.remainingArgs, cl);
         }
@@ -631,7 +633,7 @@ public class ZygoteInit {
             ZygoteConnection.applyInvokeWithSystemProperty(parsedArgs);
 
             /* Request to fork the system server process */
-            /* 请求派生 SystemServer 进程 */
+            // fork SystemServer 进程
             pid = Zygote.forkSystemServer(
                     parsedArgs.uid, parsedArgs.gid,
                     parsedArgs.gids,
@@ -644,12 +646,13 @@ public class ZygoteInit {
         }
 
         /* For child process */
+        /* systemServer 进程 */
         if (pid == 0) {
             if (hasSecondZygote(abiList)) {
                 waitForSecondaryZygote(socketName);
             }
-
             zygoteServer.closeServerSocket();
+            // 调用SystemServer进程主入口
             handleSystemServerProcess(parsedArgs);
         }
 
@@ -730,7 +733,7 @@ public class ZygoteInit {
             if (abiList == null) {
                 throw new RuntimeException("No ABI list supplied.");
             }
-            //注册 zygote 服务socket
+            //注册名为 zygote 的socket服务
             zygoteServer.registerServerSocket(socketName);
             // In some configurations, we avoid preloading resources and classes eagerly.
             // In such cases, we will preload things prior to our first fork.
@@ -772,16 +775,17 @@ public class ZygoteInit {
             ZygoteHooks.stopZygoteNoThreadCreation();
 
             if (startSystemServer) {
-                //fork SystemServer进程
+                //由于在init.rc中设置了start-system-server参数,因此启动Zygote进程后
+                //这里将启动SystemServer,可见SystemServer由Zygote创建的第一个进程
                 startSystemServer(abiList, socketName, zygoteServer);
             }
 
             Log.i(TAG, "Accepting command socket connections");
-            //接受 socket 套接字连接
+            //todo 登台 socket 套接字连接（AMS的请求）
             zygoteServer.runSelectLoop(abiList);
-
             zygoteServer.closeServerSocket();
         } catch (Zygote.MethodAndArgsCaller caller) {
+            // runSelectLoop() 方法抛出 Zygote.MethodAndArgsCaller 异常，MethodAndArgsCaller是一个runnable, run方法将执行 ActivityThread main()
             caller.run();
         } catch (Throwable ex) {
             Log.e(TAG, "System zygote died with exception", ex);
@@ -835,6 +839,8 @@ public class ZygoteInit {
      * The main function called when started through the zygote process. This
      * could be unified with main(), if the native code in nativeFinishInit()
      * were rationalized with Zygote startup.<p>
+     * 通过zygote进程启动时调用的main函数。
+     * 这可以与 main() 统一，如果 nativeFinishInit() 中的本机代码与 Zygote 启动合理化
      *
      * Current recognized args:
      * <ul>
@@ -851,10 +857,13 @@ public class ZygoteInit {
         }
 
         Trace.traceBegin(Trace.TRACE_TAG_ACTIVITY_MANAGER, "ZygoteInit");
+        //重定向log输入流
         RuntimeInit.redirectLogStreams();
-
+        //为当前VM设置未捕获异常器
         RuntimeInit.commonInit();
+        //Biner驱动初始化，该方法完成后，可通过Binder进行通信
         ZygoteInit.nativeZygoteInit();
+        //主要调用SystemServer的main方法
         RuntimeInit.applicationInit(targetSdkVersion, argv, classLoader);
     }
 

@@ -117,6 +117,7 @@ import android.os.UserManager;
 import android.service.voice.IVoiceInteractionSession;
 import android.text.TextUtils;
 import android.util.EventLog;
+import android.util.EventLogTags;
 import android.util.Slog;
 
 import com.android.internal.app.HeavyWeightSwitcherActivity;
@@ -253,6 +254,9 @@ class ActivityStarter {
         mUsingVr2dDisplay = false;
     }
 
+    /**
+     * 启动activity
+     * */
     int startActivityLocked(IApplicationThread caller, Intent intent, Intent ephemeralIntent,
             String resolvedType, ActivityInfo aInfo, ResolveInfo rInfo,
             IVoiceInteractionSession voiceSession, IVoiceInteractor voiceInteractor,
@@ -268,7 +272,7 @@ class ActivityStarter {
         mLastStartReason = reason;
         mLastStartActivityTimeMs = System.currentTimeMillis();
         mLastStartActivityRecord[0] = null;
-
+        //启动activity
         mLastStartActivityResult = startActivity(caller, intent, ephemeralIntent, resolvedType,
                 aInfo, rInfo, voiceSession, voiceInteractor, resultTo, resultWho, requestCode,
                 callingPid, callingUid, callingPackage, realCallingPid, realCallingUid, startFlags,
@@ -282,7 +286,11 @@ class ActivityStarter {
         return mLastStartActivityResult;
     }
 
-    /** DO NOT call this method directly. Use {@link #startActivityLocked} instead. */
+    /**
+     * DO NOT call this method directly. Use {@link #startActivityLocked} instead.
+     * 不要直接调用此方法，可改用 {@link #startActivityLocked}
+     * 启动activity
+     * */
     private int startActivity(IApplicationThread caller, Intent intent, Intent ephemeralIntent,
             String resolvedType, ActivityInfo aInfo, ResolveInfo rInfo,
             IVoiceInteractionSession voiceSession, IVoiceInteractor voiceInteractor,
@@ -563,7 +571,7 @@ class ActivityStarter {
         }
 
         doPendingActivityLaunchesLocked(false);
-
+        //启动activity
         return startActivity(r, sourceRecord, voiceSession, voiceInteractor, startFlags, true,
                 options, inTask, outActivity);
     }
@@ -665,6 +673,9 @@ class ActivityStarter {
         mService.mContext.startActivityAsUser(intent, options.toBundle(), UserHandle.CURRENT);
     }
 
+    /**
+     * 启动Activity
+     * */
     final int startActivityMayWait(IApplicationThread caller, int callingUid,
             String callingPackage, Intent intent, String resolvedType,
             IVoiceInteractionSession voiceSession, IVoiceInteractor voiceInteractor,
@@ -672,7 +683,7 @@ class ActivityStarter {
             ProfilerInfo profilerInfo, WaitResult outResult,
             Configuration globalConfig, Bundle bOptions, boolean ignoreTargetSecurity, int userId,
             IActivityContainer iContainer, TaskRecord inTask, String reason) {
-        // Refuse possible leaked file descriptors
+        // Refuse possible leaked file descriptors(拒绝可能泄露的文件描述符)
         if (intent != null && intent.hasFileDescriptors()) {
             throw new IllegalArgumentException("File descriptors passed in Intent");
         }
@@ -720,16 +731,20 @@ class ActivityStarter {
                 }
             }
         }
-        // Collect information about the target of the Intent.
+        // Collect information about the target of the Intent.(收集有关 Intent 目标的信息。)
+        //根据intent在系统中找到合适的应用的activity，如果有多个activity可选择，
+        //则会弹出 ResolverActivity 让用户选择合适的应用。
         ActivityInfo aInfo = mSupervisor.resolveActivity(intent, rInfo, startFlags, profilerInfo);
 
         ActivityOptions options = ActivityOptions.fromBundle(bOptions);
+        //任务栈相关？
         ActivityStackSupervisor.ActivityContainer container =
                 (ActivityStackSupervisor.ActivityContainer)iContainer;
         synchronized (mService) {
+            //猜测：非根活动，并且前一个活动处于无焦点的情况下，cancel 此次 start 动作
             if (container != null && container.mParentActivity != null &&
                     container.mParentActivity.state != RESUMED) {
-                // Cannot start a child activity if the parent is not resumed.
+                // Cannot start a child activity if the parent is not resumed.(如果未恢复父活动，则无法启动子活动。)
                 return ActivityManager.START_CANCELED;
             }
             final int realCallingPid = Binder.getCallingPid();
@@ -743,7 +758,7 @@ class ActivityStarter {
             } else {
                 callingPid = callingUid = -1;
             }
-
+            //任务栈相关判断
             final ActivityStack stack;
             if (container == null || container.mStack.isOnHomeDisplay()) {
                 stack = mSupervisor.mFocusedStack;
@@ -762,6 +777,8 @@ class ActivityStarter {
                             & ApplicationInfo.PRIVATE_FLAG_CANT_SAVE_STATE) != 0) {
                 // This may be a heavy-weight process!  Check to see if we already
                 // have another, different heavy-weight process running.
+                // 这可能是一个重量级的过程！检查我们是否已经有另一个不同的重量级进程在运行。
+                // 当前activity要求运行的进程名称是否跟包名相等（主进程为应用包名）
                 if (aInfo.processName.equals(aInfo.applicationInfo.packageName)) {
                     final ProcessRecord heavy = mService.mHeavyWeightProcess;
                     if (heavy != null && (heavy.info.uid != aInfo.applicationInfo.uid
@@ -821,6 +838,7 @@ class ActivityStarter {
             }
 
             final ActivityRecord[] outRecord = new ActivityRecord[1];
+            //打开 Activity
             int res = startActivityLocked(caller, intent, ephemeralIntent, resolvedType,
                     aInfo, rInfo, voiceSession, voiceInteractor,
                     resultTo, resultWho, requestCode, callingPid,
@@ -992,6 +1010,9 @@ class ActivityStarter {
         }
     }
 
+    /**
+     * 启动Activity
+     * */
     private int startActivity(final ActivityRecord r, ActivityRecord sourceRecord,
             IVoiceInteractionSession voiceSession, IVoiceInteractor voiceInteractor,
             int startFlags, boolean doResume, ActivityOptions options, TaskRecord inTask,
@@ -999,6 +1020,7 @@ class ActivityStarter {
         int result = START_CANCELED;
         try {
             mService.mWindowManager.deferSurfaceLayout();
+            //启动activity
             result = startActivityUnchecked(r, sourceRecord, voiceSession, voiceInteractor,
                     startFlags, doResume, options, inTask, outActivity);
         } finally {
@@ -1011,7 +1033,7 @@ class ActivityStarter {
             }
             mService.mWindowManager.continueSurfaceLayout();
         }
-
+        //启动进程？
         postStartActivityProcessing(r, result, mSupervisor.getLastStack().mStackId,  mSourceRecord,
                 mTargetStack);
 
@@ -1019,6 +1041,10 @@ class ActivityStarter {
     }
 
     // Note: This method should only be called from {@link startActivity}.
+    /**
+     * 注意：此方法只能从 {@link startActivity} 调用。
+     * 该方法会根据启动标志位和Activity启动模式来决定如何启动一个Activity，以及是否要调用deliverNewIntent方法通知Activity有一个Intent试图重新启动它
+     * */
     private int startActivityUnchecked(final ActivityRecord r, ActivityRecord sourceRecord,
             IVoiceInteractionSession voiceSession, IVoiceInteractor voiceInteractor,
             int startFlags, boolean doResume, ActivityOptions options, TaskRecord inTask,
@@ -1184,6 +1210,7 @@ class ActivityStarter {
         if (mStartActivity.resultTo == null && mInTask == null && !mAddingToTask
                 && (mLaunchFlags & FLAG_ACTIVITY_NEW_TASK) != 0) {
             newTask = true;
+            //创建新的TaskRecord
             result = setTaskFromReuseOrCreateNewTask(
                     taskToAffiliate, preferredLaunchStackId, topStack);
         } else if (mSourceRecord != null) {
@@ -1244,6 +1271,7 @@ class ActivityStarter {
                 if (mTargetStack.isFocusable() && !mSupervisor.isFocusedStack(mTargetStack)) {
                     mTargetStack.moveToFront("startActivityUnchecked");
                 }
+                //启动activity
                 mSupervisor.resumeFocusedStackTopActivityLocked(mTargetStack, mStartActivity,
                         mOptions);
             }

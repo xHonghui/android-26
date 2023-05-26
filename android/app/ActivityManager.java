@@ -4200,10 +4200,14 @@ public class ActivityManager {
         return IActivityManagerSingleton.get();
     }
 
+    /**
+     * IActivityManager 接口定义
+     * */
     private static final Singleton<IActivityManager> IActivityManagerSingleton =
             new Singleton<IActivityManager>() {
                 @Override
                 protected IActivityManager create() {
+                    // 通过AIDL（Binder）获取 AMS 代理对象，这样就可以调用 AMS 实现功能了
                     final IBinder b = ServiceManager.getService(Context.ACTIVITY_SERVICE);
                     final IActivityManager am = IActivityManager.Stub.asInterface(b);
                     return am;

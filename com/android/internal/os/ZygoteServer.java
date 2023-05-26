@@ -78,9 +78,11 @@ class ZygoteServer {
     /**
      * Waits for and accepts a single command connection. Throws
      * RuntimeException on failure.
+     * 等待并接受单个命令连接
      */
     private ZygoteConnection acceptCommandPeer(String abiList) {
         try {
+            //创建新链接
             return createNewConnection(mServerSocket.accept(), abiList);
         } catch (IOException ex) {
             throw new RuntimeException(
@@ -159,13 +161,16 @@ class ZygoteServer {
                 if ((pollFds[i].revents & POLLIN) == 0) {
                     continue;
                 }
-                if (i == 0) {
+                if (i == 0) {//i==0，说明服务端与客户端连接上，也就是当前Zygote进程与AMS进程连接上
+                    //todo 监听 socket 请求，返回一个 ZygoteConnection 对象
                     ZygoteConnection newPeer = acceptCommandPeer(abiList);
                     peers.add(newPeer);
                     fds.add(newPeer.getFileDesciptor());
                 } else {
+                    //不断处理客户端（AMS）发送过来的请求
                     boolean done = peers.get(i).runOnce(this);
                     if (done) {
+                        //处理完成，移除
                         peers.remove(i);
                         fds.remove(i);
                     }

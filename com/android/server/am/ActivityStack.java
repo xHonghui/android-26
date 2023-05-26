@@ -113,6 +113,7 @@ import android.os.UserHandle;
 import android.service.voice.IVoiceInteractionSession;
 import android.util.ArraySet;
 import android.util.EventLog;
+import android.util.EventLogTags;
 import android.util.IntArray;
 import android.util.Log;
 import android.util.Slog;
@@ -2188,6 +2189,7 @@ class ActivityStack<T extends StackWindowController> extends ConfigurationContai
     }
 
     /**
+     * 启动activity
      * Ensure that the top activity in the stack is resumed.
      *
      * @param prev The previously resumed activity, for when in the process
@@ -2212,6 +2214,7 @@ class ActivityStack<T extends StackWindowController> extends ConfigurationContai
         try {
             // Protect against recursion.
             mStackSupervisor.inResumeTopActivity = true;
+            //启动activity
             result = resumeTopActivityInnerLocked(prev, options);
         } finally {
             mStackSupervisor.inResumeTopActivity = false;
@@ -2630,6 +2633,7 @@ class ActivityStack<T extends StackWindowController> extends ConfigurationContai
                     next.showStartingWindow(null /* prev */, false /* newTask */,
                             false /* taskSwitch */);
                 }
+                //todo
                 mStackSupervisor.startSpecificActivityLocked(next, true, false);
                 if (DEBUG_STACK) mStackSupervisor.validateTopActivitiesLocked();
                 return true;
@@ -2660,6 +2664,7 @@ class ActivityStack<T extends StackWindowController> extends ConfigurationContai
                 if (DEBUG_SWITCH) Slog.v(TAG_SWITCH, "Restarting: " + next);
             }
             if (DEBUG_STATES) Slog.d(TAG_STATES, "resumeTopActivityLocked: Restarting " + next);
+            //todo 启动activity(这个方法将是普通Activity和根Activity启动流程的分岔路口。)
             mStackSupervisor.startSpecificActivityLocked(next, true, true);
         }
 

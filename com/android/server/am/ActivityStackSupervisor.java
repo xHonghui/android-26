@@ -162,6 +162,7 @@ import android.service.voice.IVoiceInteractionSession;
 import android.util.ArrayMap;
 import android.util.ArraySet;
 import android.util.EventLog;
+import android.util.EventLogTags;
 import android.util.IntArray;
 import android.util.MergedConfiguration;
 import android.util.Slog;
@@ -1549,14 +1550,19 @@ public class ActivityStackSupervisor extends ConfigurationContainer implements D
         return true;
     }
 
+    /**
+     * 启动activity
+     * 这个方法比较重要，这个方法将是普通Activity跟根Activity启动流程的分岔口
+     * */
     void startSpecificActivityLocked(ActivityRecord r,
             boolean andResume, boolean checkConfig) {
         // Is this activity's application already running?
+        // 获取即将要启动的Activity所在的应用程序进程
         ProcessRecord app = mService.getProcessRecordLocked(r.processName,
                 r.info.applicationInfo.uid, true);
 
         r.getStack().setLaunchTime(r);
-
+        // 如果应用进程已经存在
         if (app != null && app.thread != null) {
             try {
                 if ((r.info.flags&ActivityInfo.FLAG_MULTIPROCESS) == 0
@@ -1568,6 +1574,7 @@ public class ActivityStackSupervisor extends ConfigurationContainer implements D
                     app.addPackage(r.info.packageName, r.info.applicationInfo.versionCode,
                             mService.mProcessStats);
                 }
+                //非根Activity启动逻辑
                 realStartActivityLocked(r, app, andResume, checkConfig);
                 return;
             } catch (RemoteException e) {
@@ -1578,7 +1585,7 @@ public class ActivityStackSupervisor extends ConfigurationContainer implements D
             // If a dead object exception was thrown -- fall through to
             // restart the application.
         }
-
+        //应用进程还未创建，则通过AMS调用startProcessLocked向Zygote进程发送请求
         mService.startProcessLocked(r.processName, r.info.applicationInfo, true, 0,
                 "activity", r.intent.getComponent(), false, false, true);
     }
@@ -2063,6 +2070,7 @@ public class ActivityStackSupervisor extends ConfigurationContainer implements D
         }
         final ActivityRecord r = mFocusedStack.topRunningActivityLocked();
         if (r == null || r.state != RESUMED) {
+            //启动activity
             mFocusedStack.resumeTopActivityUncheckedLocked(null, null);
         } else if (r.state == RESUMED) {
             // Kick off any lingering app transitions form the MoveTaskToFront operation.

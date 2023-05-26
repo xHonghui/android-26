@@ -1607,6 +1607,7 @@ public class Instrumentation {
         try {
             intent.migrateExtraStreamToClipData();
             intent.prepareToLeaveProcess(who);
+            //获取AMS代理对象，调用 startActivity 启动 Activity
             int result = ActivityManager.getService()
                 .startActivity(whoThread, who.getBasePackageName(), intent,
                         intent.resolveTypeIfNeeded(who.getContentResolver()),

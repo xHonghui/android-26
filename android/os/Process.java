@@ -439,6 +439,10 @@ public class Process {
      * 
      * {@hide}
      */
+    /**
+     * 开启新进程
+     * @param processClass : 新进程主线程入口（"android.app.ActivityThread"）
+     * */
     public static final ProcessStartResult start(final String processClass,
                                   final String niceName,
                                   int uid, int gid, int[] gids,
@@ -450,7 +454,7 @@ public class Process {
                                   String appDataDir,
                                   String invokeWith,
                                   String[] zygoteArgs) {
-        //开启新进程
+        //todo 开启新进程
         return zygoteProcess.start(processClass, niceName, uid, gid, gids,
                     debugFlags, mountExternal, targetSdkVersion, seInfo,
                     abi, instructionSet, appDataDir, invokeWith, zygoteArgs);

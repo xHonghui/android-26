@@ -3634,6 +3634,9 @@ public class ActivityManagerService extends IActivityManager.Stub
         }
     }
 
+    /**
+     * 向 Zygote 进程发送请求，创建新进程
+     * */
     final ProcessRecord startProcessLocked(String processName,
             ApplicationInfo info, boolean knownToBeDead, int intentFlags,
             String hostingType, ComponentName hostingName, boolean allowWhileBooting,
@@ -3644,6 +3647,9 @@ public class ActivityManagerService extends IActivityManager.Stub
                 null /* crashHandler */);
     }
 
+    /**
+     * 向 Zygote 进程发送请求，创建新进程
+     * */
     final ProcessRecord startProcessLocked(String processName, ApplicationInfo info,
             boolean knownToBeDead, int intentFlags, String hostingType, ComponentName hostingName,
             boolean allowWhileBooting, boolean isolated, int isolatedUid, boolean keepIfLarge,
@@ -3749,6 +3755,7 @@ public class ActivityManagerService extends IActivityManager.Stub
         }
 
         checkTime(startTime, "startProcess: stepping in to startProcess");
+        //向 Zygote 进程发送请求，请求创建新进程
         startProcessLocked(
                 app, hostingType, hostingNameStr, abiOverride, entryPoint, entryPointArgs);
         checkTime(startTime, "startProcess: done starting proc!");
@@ -3765,6 +3772,9 @@ public class ActivityManagerService extends IActivityManager.Stub
                 null /* entryPoint */, null /* entryPointArgs */);
     }
 
+    /**
+     * 向 Zygote 进程发送请求，创建新进程
+     * */
     private final void startProcessLocked(ProcessRecord app, String hostingType,
             String hostingNameStr, String abiOverride, String entryPoint, String[] entryPointArgs) {
         long startTime = SystemClock.elapsedRealtime();
@@ -3816,6 +3826,7 @@ public class ActivityManagerService extends IActivityManager.Stub
                  * Add shared application and profile GIDs so applications can share some
                  * resources like shared libraries and access user-wide resources
                  */
+                // 对用户组进行创建和赋值
                 if (ArrayUtils.isEmpty(permGids)) {
                     gids = new int[3];
                 } else {
@@ -3912,6 +3923,7 @@ public class ActivityManagerService extends IActivityManager.Stub
             // Start the process.  It will either succeed and return a result containing
             // the PID of the new process, or else throw a RuntimeException.
             boolean isActivityProcess = (entryPoint == null);
+            //新进程主入口
             if (entryPoint == null) entryPoint = "android.app.ActivityThread";
             Trace.traceBegin(Trace.TRACE_TAG_ACTIVITY_MANAGER, "Start proc: " +
                     app.processName);
@@ -3923,8 +3935,8 @@ public class ActivityManagerService extends IActivityManager.Stub
                         app.info.targetSdkVersion, seInfo, requiredAbi, instructionSet,
                         app.info.dataDir, null, entryPointArgs);
             } else {
-                //请求Zygote，开启新进程
-                //entryPoint: 新进程主入口
+                //todo 请求Zygote，创建新进程
+                //todo entryPoint: 新进程主入口
                 startResult = Process.start(entryPoint,
                         app.processName, uid, uid, gids, debugFlags, mountExternal,
                         app.info.targetSdkVersion, seInfo, requiredAbi, instructionSet,
@@ -4460,6 +4472,10 @@ public class ActivityManagerService extends IActivityManager.Stub
         }
     }
 
+    /**
+     * 启动 Activity 入口
+     * -->
+     * */
     @Override
     public final int startActivity(IApplicationThread caller, String callingPackage,
             Intent intent, String resolvedType, IBinder resultTo, String resultWho, int requestCode,
@@ -4489,6 +4505,9 @@ public class ActivityManagerService extends IActivityManager.Stub
                 "startActivity");
     }
 
+    /**
+     * 启动 Activity
+     * */
     @Override
     public final int startActivityAsUser(IApplicationThread caller, String callingPackage,
             Intent intent, String resolvedType, IBinder resultTo, String resultWho, int requestCode,
@@ -4496,7 +4515,7 @@ public class ActivityManagerService extends IActivityManager.Stub
         enforceNotIsolatedCaller("startActivity");
         userId = mUserController.handleIncomingUser(Binder.getCallingPid(), Binder.getCallingUid(),
                 userId, false, ALLOW_FULL_ONLY, "startActivity", null);
-        // TODO: Switch to user app stacks here.
+        // TODO: Switch to user app stacks here.（在此处切换到用户应用程序堆栈。）
         return mActivityStarter.startActivityMayWait(caller, -1, callingPackage, intent,
                 resolvedType, null, null, resultTo, resultWho, requestCode, startFlags,
                 profilerInfo, null, null, bOptions, false, userId, null, null,

@@ -52,7 +52,7 @@ import java.util.List;
 /**
  * Displays a list of all activities which can be performed
  * for a given intent. Launches when clicked.
- *
+ * (显示可以针对给定意图执行的所有活动的列表。单击时启动。)
  */
 public abstract class LauncherActivity extends ListActivity {
     Intent mIntent;
@@ -92,6 +92,7 @@ public abstract class LauncherActivity extends ListActivity {
 
     /**
      * Adapter which shows the set of activities that can be performed for a given intent.
+     * 显示可以为给定意图执行的一组活动的适配器。
      */
     private class ActivityAdapter extends BaseAdapter implements Filterable {
         private final Object lock = new Object();
@@ -243,7 +244,8 @@ public abstract class LauncherActivity extends ListActivity {
     }
         
     /**
-     * Utility class to resize icons to match default icon size.  
+     * Utility class to resize icons to match default icon size.
+     * 调整图标大小以匹配默认图标大小的实用程序类。
      */
     public class IconResizer {
         // Code is borrowed from com.android.launcher.Utilities. 
@@ -402,6 +404,9 @@ public abstract class LauncherActivity extends ListActivity {
         setContentView(com.android.internal.R.layout.activity_list);
     }
 
+    /**
+     * 桌面图标点击，启动Activity
+     * */
     @Override
     protected void onListItemClick(ListView l, View v, int position, long id) {
         Intent intent = intentForPosition(position);
@@ -453,10 +458,13 @@ public abstract class LauncherActivity extends ListActivity {
 
     /**
      * Perform the query to determine which results to show and return a list of them.
+     * 执行查询以确定要显示的结果并返回结果列表。
      */
     public List<ListItem> makeListItems() {
         // Load all matching activities and sort correctly
+        //加载所有匹配的活动并正确排序
         List<ResolveInfo> list = onQueryPackageManager(mIntent);
+        //排序
         onSortResultList(list);
 
         ArrayList<ListItem> result = new ArrayList<ListItem>(list.size());

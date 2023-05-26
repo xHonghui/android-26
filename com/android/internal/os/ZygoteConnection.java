@@ -138,6 +138,7 @@ class ZygoteConnection {
         FileDescriptor[] descriptors;
 
         try {
+            //读取socket请求参数
             args = readArgumentList();
             descriptors = mSocket.getAncillaryFileDescriptors();
         } catch (IOException ex) {
@@ -235,7 +236,7 @@ class ZygoteConnection {
             }
 
             fd = null;
-
+            //todo fork当前进程创建子进程
             pid = Zygote.forkAndSpecialize(parsedArgs.uid, parsedArgs.gid, parsedArgs.gids,
                     parsedArgs.debugFlags, rlimits, parsedArgs.mountExternal, parsedArgs.seInfo,
                     parsedArgs.niceName, fdsToClose, fdsToIgnore, parsedArgs.instructionSet,
@@ -252,21 +253,26 @@ class ZygoteConnection {
         try {
             if (pid == 0) {
                 // in child
+                // 子进程中（fork返回0），即fork出来的子进程
                 zygoteServer.closeServerSocket();
                 IoUtils.closeQuietly(serverPipeFd);
                 serverPipeFd = null;
+                //todo pid为0则代表这个进程为子进程，即新创建的应用程序进程
                 handleChildProc(parsedArgs, descriptors, childPipeFd, newStderr);
 
                 // should never get here, the child is expected to either
                 // throw Zygote.MethodAndArgsCaller or exec().
+                // 永远不应该到达这里，子进程应该抛出 Zygote.MethodAndArgsCaller 或 exec()。
                 return true;
             } else {
                 // in parent...pid of < 0 means failure
+                // 出现错误时，fork返回负数。
                 IoUtils.closeQuietly(childPipeFd);
                 childPipeFd = null;
                 return handleParentProc(pid, descriptors, serverPipeFd, parsedArgs);
             }
         } finally {
+            //todo handleChildProc() 方法抛出 Zygote.MethodAndArgsCaller 异常
             IoUtils.closeQuietly(childPipeFd);
             IoUtils.closeQuietly(serverPipeFd);
         }
@@ -632,6 +638,7 @@ class ZygoteConnection {
      * Reads an argument list from the command socket/
      * @return Argument list or null if EOF is reached
      * @throws IOException passed straight through
+     * 从命令套接字中读取参数列表
      */
     private String[] readArgumentList()
             throws IOException {
@@ -790,8 +797,8 @@ class ZygoteConnection {
          * By the time we get here, the native code has closed the two actual Zygote
          * socket connections, and substituted /dev/null in their place.  The LocalSocket
          * objects still need to be closed properly.
+         * 当我们到达这里时，本机代码已经关闭了两个实际的 Zygote 套接字连接，并用 devnull 代替了它们。 LocalSocket 对象仍然需要正确关闭。
          */
-
         closeSocket();
         if (descriptors != null) {
             try {
@@ -820,6 +827,7 @@ class ZygoteConnection {
                     VMRuntime.getCurrentInstructionSet(),
                     pipeFd, parsedArgs.remainingArgs);
         } else {
+            //todo 进程初始化
             ZygoteInit.zygoteInit(parsedArgs.targetSdkVersion,
                     parsedArgs.remainingArgs, null /* classLoader */);
         }

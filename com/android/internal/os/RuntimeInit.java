@@ -233,6 +233,7 @@ public class RuntimeInit {
         Class<?> cl;
 
         try {
+            //放射 android.app.ActivityThread 类
             cl = Class.forName(className, true, classLoader);
         } catch (ClassNotFoundException ex) {
             throw new RuntimeException(
@@ -242,6 +243,7 @@ public class RuntimeInit {
 
         Method m;
         try {
+            //放射 android.app.ActivityThread 类的 main 方法
             m = cl.getMethod("main", new Class[] { String[].class });
         } catch (NoSuchMethodException ex) {
             throw new RuntimeException(
@@ -263,6 +265,7 @@ public class RuntimeInit {
          * clears up all the stack frames that were required in setting
          * up the process.
          */
+        //通过放射执行 ActivityThread main() 方法
         throw new Zygote.MethodAndArgsCaller(m, argv);
     }
 
@@ -313,6 +316,9 @@ public class RuntimeInit {
         Trace.traceEnd(Trace.TRACE_TAG_ACTIVITY_MANAGER);
 
         // Remaining arguments are passed to the start class's static main
+        // 剩余的参数被传递给起始类的静态 main
+        // 通过反射执行 ActivityThread 类的 main 方法，并传递参数
+        // args.startClass = android.app.ActivityThread
         invokeStaticMain(args.startClass, args.startArgs, classLoader);
     }
 
