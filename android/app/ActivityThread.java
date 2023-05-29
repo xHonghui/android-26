@@ -891,6 +891,9 @@ public final class ActivityThread {
             sendMessage(H.STOP_SERVICE, token);
         }
 
+        /**
+         *todo 应用进程将 ApplicationThread 与 AMS 进行绑定，这样 AMS 就可以通过 ApplicationThread 控制应用进程
+         * */
         public final void bindApplication(String processName, ApplicationInfo appInfo,
                 List<ProviderInfo> providers, ComponentName instrumentationName,
                 ProfilerInfo profilerInfo, Bundle instrumentationArgs,
@@ -903,6 +906,7 @@ public final class ActivityThread {
 
             if (services != null) {
                 // Setup the service cache in the ServiceManager
+                // 在 ServiceManager 中设置服务缓存
                 ServiceManager.initServiceCache(services);
             }
 
@@ -925,6 +929,7 @@ public final class ActivityThread {
             data.compatInfo = compatInfo;
             data.initProfilerInfo = profilerInfo;
             data.buildSerial = buildSerial;
+            //向H对象发送绑定 ApplicationThread 对象的消息
             sendMessage(H.BIND_APPLICATION, data);
         }
 
@@ -1656,6 +1661,7 @@ public final class ActivityThread {
                     Trace.traceEnd(Trace.TRACE_TAG_ACTIVITY_MANAGER);
                     break;
                 case BIND_APPLICATION:
+                    //向AMS 绑定 ApplicationThread
                     Trace.traceBegin(Trace.TRACE_TAG_ACTIVITY_MANAGER, "bindApplication");
                     AppBindData data = (AppBindData)msg.obj;
                     handleBindApplication(data);
@@ -5450,14 +5456,19 @@ public final class ActivityThread {
         LocaleList.setDefault(new LocaleList(bestLocale, newLocaleList));
     }
 
+    /**
+     * 向 AMS 绑定 ApplicationThread
+     * */
     private void handleBindApplication(AppBindData data) {
         // Register the UI Thread as a sensitive thread to the runtime.
+        // 将 UI 线程注册为运行时的敏感线程。
         VMRuntime.registerSensitiveThread();
         if (data.trackAllocation) {
             DdmVmInternal.enableRecentAllocations(true);
         }
 
         // Note when this process has started.
+        // 设置进程开始时间
         Process.setStartTimes(SystemClock.elapsedRealtime(), SystemClock.uptimeMillis());
 
         mBoundApplication = data;
@@ -5474,6 +5485,7 @@ public final class ActivityThread {
         }
 
         // send up app name; do this *before* waiting for debugger
+        // 发送应用名称；在等待调试器之前执行此操作
         Process.setArgV0(data.processName);
         android.ddm.DdmHandleAppName.setAppName(data.processName,
                                                 UserHandle.myUserId());
@@ -5482,6 +5494,7 @@ public final class ActivityThread {
             // Persistent processes on low-memory devices do not get to
             // use hardware accelerated drawing, since this can add too much
             // overhead to the process.
+            // 低内存设备上的持久进程无法使用硬件加速绘图，因为这会给进程增加太多开销。
             if (!ActivityManager.isHighEndGfx()) {
                 ThreadedRenderer.disable(false);
             }
@@ -5762,6 +5775,8 @@ public final class ActivityThread {
         try {
             // If the app is being launched for full backup or restore, bring it up in
             // a restricted environment with the base application class.
+            // 如果启动应用程序是为了完全备份或恢复，请将其置于具有基本应用程序类的受限环境中。
+            //todo 创建Application，调用 attach 方法
             Application app = data.info.makeApplication(data.restrictedBackupMode, null);
             mInitialApplication = app;
 
@@ -5788,6 +5803,9 @@ public final class ActivityThread {
             }
 
             try {
+                //todo 调用Application 的 onCreate() 方法；
+                // 故Application的onCreate 比 ActivityThread 的 main 方法晚执行
+                // 但是会比所有 Activity 的onCreate 方法先执行，因为此时Activity都还乜有启动
                 mInstrumentation.callApplicationOnCreate(app);
             } catch (Exception e) {
                 if (!mInstrumentation.onException(app, e)) {
@@ -6358,6 +6376,9 @@ public final class ActivityThread {
         return retHolder;
     }
 
+    /**
+     * AMS绑定 ActivityThread 对象，即引用进程绑定AMS服务
+     * */
     private void attach(boolean system) {
         sCurrentActivityThread = this;
         mSystemThread = system;
@@ -6373,11 +6394,13 @@ public final class ActivityThread {
             RuntimeInit.setApplicationObject(mAppThread.asBinder());
             final IActivityManager mgr = ActivityManager.getService();
             try {
+                // AMS 绑定 ApplicationThread 对象
                 mgr.attachApplication(mAppThread);
             } catch (RemoteException ex) {
                 throw ex.rethrowFromSystemServer();
             }
             // Watch for getting close to heap limit.
+            // 垃圾回收观察者
             BinderInternal.addGcWatcher(new Runnable() {
                 @Override public void run() {
                     if (!mSomeActivitiesChanged) {
@@ -6386,6 +6409,7 @@ public final class ActivityThread {
                     Runtime runtime = Runtime.getRuntime();
                     long dalvikMax = runtime.maxMemory();
                     long dalvikUsed = runtime.totalMemory() - runtime.freeMemory();
+                    //垃圾回收，如果已用内存超过总量3/4，则尝试释放内存
                     if (dalvikUsed > ((3*dalvikMax)/4)) {
                         if (DEBUG_MEMORY_TRIM) Slog.d(TAG, "Dalvik max=" + (dalvikMax/1024)
                                 + " total=" + (runtime.totalMemory()/1024)
@@ -6521,10 +6545,10 @@ public final class ActivityThread {
         TrustedCertificateStore.setDefaultUserDirectory(configDir);
 
         Process.setArgV0("<pre-initialized>");
-
+        //1、创建主线程Looper以及消息队列
         Looper.prepareMainLooper();
-
         ActivityThread thread = new ActivityThread();
+        //2、AMS绑定 ActivityThread 对象，即引用进程绑定AMS服务
         thread.attach(false);
 
         if (sMainThreadHandler == null) {
@@ -6538,6 +6562,7 @@ public final class ActivityThread {
 
         // End of event ActivityThreadMain.
         Trace.traceEnd(Trace.TRACE_TAG_ACTIVITY_MANAGER);
+        //3、开启主线程的消息循环
         Looper.loop();
 
         throw new RuntimeException("Main thread loop unexpectedly exited");

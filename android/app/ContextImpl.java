@@ -2235,10 +2235,14 @@ class ContextImpl extends Context {
         return context;
     }
 
+    /**
+     * 创建application 唯一的 ContextImpl对象
+     * */
     static ContextImpl createAppContext(ActivityThread mainThread, LoadedApk packageInfo) {
         if (packageInfo == null) throw new IllegalArgumentException("packageInfo");
         ContextImpl context = new ContextImpl(null, mainThread, packageInfo, null, null, null, 0,
                 null);
+        //将当前 app 的 packageInfo 都设置到 ContextImpl 中，后续才可以通过该对象获取app的资源文件
         context.setResources(packageInfo.getResources());
         return context;
     }

@@ -961,7 +961,9 @@ public final class LoadedApk {
                 initializeJavaContextClassLoader();
                 Trace.traceEnd(Trace.TRACE_TAG_ACTIVITY_MANAGER);
             }
+            //创建 ContextImpl对象
             ContextImpl appContext = ContextImpl.createAppContext(mActivityThread, this);
+            //创建Application对象，并调用 attach 方法
             app = mActivityThread.mInstrumentation.newApplication(
                     cl, appClass, appContext);
             appContext.setOuterContext(app);
@@ -973,11 +975,14 @@ public final class LoadedApk {
                     + ": " + e.toString(), e);
             }
         }
+        //PS: apk加固方案的解密流程中，需要替换原Application，注意替换的时机，如果替换时机在调用 attach、onCreate 之后
+        //则替换之后，需要主动调用一下 attach、onCreate 方法
         mActivityThread.mAllApplications.add(app);
         mApplication = app;
 
         if (instrumentation != null) {
             try {
+                //调用Application onCreate 方法
                 instrumentation.callApplicationOnCreate(app);
             } catch (Exception e) {
                 if (!instrumentation.onException(app, e)) {

@@ -6736,6 +6736,9 @@ public class ActivityManagerService extends IActivityManager.Stub
         }
     }
 
+    /**
+     * 绑定 ApplicationThread
+     * */
     private final boolean attachApplicationLocked(IApplicationThread thread,
             int pid) {
 
@@ -6927,6 +6930,8 @@ public class ActivityManagerService extends IActivityManager.Stub
             checkTime(startTime, "attachApplicationLocked: immediately before bindApplication");
             mStackSupervisor.mActivityMetricsLogger.notifyBindApplication(app);
             if (app.instr != null) {
+                // AMS通过 ApplicationThread 对象 thread，可以调用应用进程的方法，以此来达到控制应用进程的目的
+                // 调用 ApplicationThread 的 bindApplication 方法，告诉应用进程去创建 Application
                 thread.bindApplication(processName, appInfo, providers,
                         app.instr.mClass,
                         profilerInfo, app.instr.mArguments,
@@ -6975,8 +6980,10 @@ public class ActivityManagerService extends IActivityManager.Stub
         boolean didSomething = false;
 
         // See if the top visible activity is waiting to run in this process...
+        // 查看top visible activity是否在这个进程中等待运行...
         if (normalMode) {
             try {
+                //todo 启动Activity
                 if (mStackSupervisor.attachApplicationLocked(app)) {
                     didSomething = true;
                 }

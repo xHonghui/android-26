@@ -1080,6 +1080,9 @@ public class Instrumentation {
      * 
      * @return The newly instantiated Application object.
      */
+    /**
+     * 创建 application 对象
+     * */
     public Application newApplication(ClassLoader cl, String className, Context context)
             throws InstantiationException, IllegalAccessException, 
             ClassNotFoundException {
@@ -1098,7 +1101,9 @@ public class Instrumentation {
     static public Application newApplication(Class<?> clazz, Context context)
             throws InstantiationException, IllegalAccessException, 
             ClassNotFoundException {
+        //通过反射创建 Application 对象
         Application app = (Application)clazz.newInstance();
+        //调用attach 方法，所以 Application 的 attach() 方法在 onCreate 之前调用
         app.attach(context);
         return app;
     }
@@ -1115,6 +1120,7 @@ public class Instrumentation {
      * @param app The application being created.
      */
     public void callApplicationOnCreate(Application app) {
+        //调用 Application 的 onCreate 方法
         app.onCreate();
     }
     
