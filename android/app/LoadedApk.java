@@ -940,6 +940,7 @@ public final class LoadedApk {
 
     public Application makeApplication(boolean forceDefaultAppClass,
             Instrumentation instrumentation) {
+        //todo 如果application已经创建，则直接return
         if (mApplication != null) {
             return mApplication;
         }

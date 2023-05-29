@@ -6931,7 +6931,7 @@ public class ActivityManagerService extends IActivityManager.Stub
             mStackSupervisor.mActivityMetricsLogger.notifyBindApplication(app);
             if (app.instr != null) {
                 // AMS通过 ApplicationThread 对象 thread，可以调用应用进程的方法，以此来达到控制应用进程的目的
-                // 调用 ApplicationThread 的 bindApplication 方法，告诉应用进程去创建 Application
+                //todo 调用 ApplicationThread 的 bindApplication 方法，通知应用进程去创建 Application
                 thread.bindApplication(processName, appInfo, providers,
                         app.instr.mClass,
                         profilerInfo, app.instr.mArguments,
@@ -6983,7 +6983,7 @@ public class ActivityManagerService extends IActivityManager.Stub
         // 查看top visible activity是否在这个进程中等待运行...
         if (normalMode) {
             try {
-                //todo 启动Activity
+                //todo 启动 Activity 流程
                 if (mStackSupervisor.attachApplicationLocked(app)) {
                     didSomething = true;
                 }
@@ -6994,6 +6994,7 @@ public class ActivityManagerService extends IActivityManager.Stub
         }
 
         // Find any services that should be running in this process...
+        // 查找应在此进程中运行的任何服务...
         if (!badApp) {
             try {
                 didSomething |= mServices.attachApplicationLocked(app, processName);

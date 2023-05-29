@@ -747,6 +747,9 @@ public final class ActivityThread {
 
         // we use token to identify this activity without having to send the
         // activity itself back to the activity manager. (matters more with ipc)
+        /**
+         * 我们使用令牌来识别此活动，而不必将活动本身发送回活动管理器。 （ipc 更重要）
+         * */
         @Override
         public final void scheduleLaunchActivity(Intent intent, IBinder token, int ident,
                 ActivityInfo info, Configuration curConfig, Configuration overrideConfig,
@@ -779,7 +782,7 @@ public final class ActivityThread {
 
             r.overrideConfig = overrideConfig;
             updatePendingConfiguration(curConfig);
-
+            //启动Activity
             sendMessage(H.LAUNCH_ACTIVITY, r);
         }
 
@@ -892,7 +895,7 @@ public final class ActivityThread {
         }
 
         /**
-         *todo 应用进程将 ApplicationThread 与 AMS 进行绑定，这样 AMS 就可以通过 ApplicationThread 控制应用进程
+         *todo AMS 通知应用进程创建 Application
          * */
         public final void bindApplication(String processName, ApplicationInfo appInfo,
                 List<ProviderInfo> providers, ComponentName instrumentationName,
@@ -1590,11 +1593,13 @@ public final class ActivityThread {
             if (DEBUG_MESSAGES) Slog.v(TAG, ">>> handling: " + codeToString(msg.what));
             switch (msg.what) {
                 case LAUNCH_ACTIVITY: {
+                    //启动 Activity 消息
                     Trace.traceBegin(Trace.TRACE_TAG_ACTIVITY_MANAGER, "activityStart");
                     final ActivityClientRecord r = (ActivityClientRecord) msg.obj;
 
                     r.packageInfo = getPackageInfoNoCheck(
                             r.activityInfo.applicationInfo, r.compatInfo);
+                    //todo 启动Activity
                     handleLaunchActivity(r, null, "LAUNCH_ACTIVITY");
                     Trace.traceEnd(Trace.TRACE_TAG_ACTIVITY_MANAGER);
                 } break;
@@ -2686,11 +2691,16 @@ public final class ActivityThread {
         sendMessage(H.CLEAN_UP_CONTEXT, cci);
     }
 
+    /**
+     * 创建并启动Activity
+     * */
     private Activity performLaunchActivity(ActivityClientRecord r, Intent customIntent) {
         // System.out.println("##### [" + System.currentTimeMillis() + "] ActivityThread.performLaunchActivity(" + r + ")");
-
+        // ActivityInfo 用于存储代码和 AndroidManifest 设置的 Activity 和 receiver 节点信息
+        // 比如Activity的theme和launchMode
         ActivityInfo aInfo = r.activityInfo;
         if (r.packageInfo == null) {
+            //获取APK文件的描述类 LoadedApk
             r.packageInfo = getPackageInfo(aInfo.applicationInfo, r.compatInfo,
                     Context.CONTEXT_INCLUDE_CODE);
         }
@@ -2706,11 +2716,12 @@ public final class ActivityThread {
             component = new ComponentName(r.activityInfo.packageName,
                     r.activityInfo.targetActivity);
         }
-
+        //构建要启动的Activity的上下文环境
         ContextImpl appContext = createBaseContextForActivity(r);
         Activity activity = null;
         try {
             java.lang.ClassLoader cl = appContext.getClassLoader();
+            //反射创建 Activity 对象
             activity = mInstrumentation.newActivity(
                     cl, component.getClassName(), r.intent);
             StrictMode.incrementExpectedActivityCount(activity.getClass());
@@ -2728,6 +2739,7 @@ public final class ActivityThread {
         }
 
         try {
+            //如果当前还没有创建 Application，则创建，否则直接返回已存在的 Application
             Application app = r.packageInfo.makeApplication(false, mInstrumentation);
 
             if (localLOGV) Slog.v(TAG, "Performing launch of " + r);
@@ -2753,6 +2765,7 @@ public final class ActivityThread {
                     r.mPendingRemoveWindowManager = null;
                 }
                 appContext.setOuterContext(activity);
+                //调用 Activity 的 attach 方法
                 activity.attach(appContext, this, getInstrumentation(), r.token,
                         r.ident, app, r.intent, r.activityInfo, title, r.parent,
                         r.embeddedID, r.lastNonConfigurationInstances, config,
@@ -2766,13 +2779,16 @@ public final class ActivityThread {
                 activity.mStartedActivity = false;
                 int theme = r.activityInfo.getThemeResource();
                 if (theme != 0) {
+                    //设置 Activity 主题
                     activity.setTheme(theme);
                 }
 
                 activity.mCalled = false;
                 if (r.isPersistable()) {
+                    //1、调用 Activity#onCreate() 方法
                     mInstrumentation.callActivityOnCreate(activity, r.state, r.persistentState);
                 } else {
+                    //1、调用 Activity#onCreate() 方法
                     mInstrumentation.callActivityOnCreate(activity, r.state);
                 }
                 if (!activity.mCalled) {
@@ -2783,12 +2799,14 @@ public final class ActivityThread {
                 r.activity = activity;
                 r.stopped = true;
                 if (!r.activity.mFinished) {
+                    //2、调用 Activity#onStart() 方法
                     activity.performStart();
                     r.stopped = false;
                 }
                 if (!r.activity.mFinished) {
                     if (r.isPersistable()) {
                         if (r.state != null || r.persistentState != null) {
+                            //isPersistable=true（重启）, 调用 onRestoreInstanceState() 方法，恢复 Activity 状态
                             mInstrumentation.callActivityOnRestoreInstanceState(activity, r.state,
                                     r.persistentState);
                         }
@@ -2894,13 +2912,14 @@ public final class ActivityThread {
 
         // Initialize before creating the activity
         WindowManagerGlobal.initialize();
-
+        //todo 创建Activity
         Activity a = performLaunchActivity(r, customIntent);
 
         if (a != null) {
             r.createdConfig = new Configuration(mConfiguration);
             reportSizeConfigurations(r);
             Bundle oldState = r.state;
+            //调用 Activity#onResume 方法
             handleResumeActivity(r.token, false, r.isForward,
                     !r.activity.mFinished && !r.startsNotResumed, r.lastProcessedSeq, reason);
 
@@ -2925,6 +2944,7 @@ public final class ActivityThread {
             }
         } else {
             // If there was an error, for any reason, tell the activity manager to stop us.
+            // 如果出现错误，无论出于何种原因，停止 activity
             try {
                 ActivityManager.getService()
                     .finishActivity(r.token, Activity.RESULT_CANCELED, null,

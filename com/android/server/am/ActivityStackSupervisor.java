@@ -955,6 +955,9 @@ public class ActivityStackSupervisor extends ConfigurationContainer implements D
         return resumedActivity;
     }
 
+    /**
+     * 启动 Activity 流程
+     * */
     boolean attachApplicationLocked(ProcessRecord app) throws RemoteException {
         final String processName = app.processName;
         boolean didSomething = false;
@@ -970,6 +973,7 @@ public class ActivityStackSupervisor extends ConfigurationContainer implements D
                     if (hr.app == null && app.uid == hr.info.applicationInfo.uid
                             && processName.equals(hr.processName)) {
                         try {
+                            //todo 启动 Activity 流程
                             if (realStartActivityLocked(hr, app, true, true)) {
                                 didSomething = true;
                             }
@@ -1323,6 +1327,9 @@ public class ActivityStackSupervisor extends ConfigurationContainer implements D
         return resolveActivity(intent, rInfo, startFlags, profilerInfo);
     }
 
+    /**
+     * 启动 Activity 流程
+     * */
     final boolean realStartActivityLocked(ActivityRecord r, ProcessRecord app,
             boolean andResume, boolean checkConfig) throws RemoteException {
 
@@ -1464,7 +1471,7 @@ public class ActivityStackSupervisor extends ConfigurationContainer implements D
             final MergedConfiguration mergedConfiguration = new MergedConfiguration(
                     mService.getGlobalConfiguration(), r.getMergedOverrideConfiguration());
             r.setLastReportedConfiguration(mergedConfiguration);
-
+            //todo 调用 ApplicationThread scheduleLaunchActivity() 方法启动 Activity
             app.thread.scheduleLaunchActivity(new Intent(r.intent), r.appToken,
                     System.identityHashCode(r), r.info,
                     // TODO: Have this take the merged configuration instead of separate global and

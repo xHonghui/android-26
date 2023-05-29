@@ -1163,6 +1163,7 @@ public class Instrumentation {
     /**
      * Perform instantiation of the process's {@link Activity} object.  The
      * default implementation provides the normal system behavior.
+     * 执行流程的 {@link Activity} 对象的实例化。默认实现提供正常的系统行为。
      * 
      * @param cl The ClassLoader with which to instantiate the object.
      * @param className The name of the class implementing the Activity
@@ -1172,6 +1173,9 @@ public class Instrumentation {
      * 
      * @return The newly instantiated Activity object.
      */
+    /**
+     * 通过反射创建 Activity 对象
+     * */
     public Activity newActivity(ClassLoader cl, String className,
             Intent intent)
             throws InstantiationException, IllegalAccessException,
@@ -1230,6 +1234,7 @@ public class Instrumentation {
     public void callActivityOnCreate(Activity activity, Bundle icicle,
             PersistableBundle persistentState) {
         prePerformCreate(activity);
+        //调用Activity#onCreate() 方法
         activity.performCreate(icicle, persistentState);
         postPerformCreate(activity);
     }

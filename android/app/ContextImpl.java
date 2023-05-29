@@ -2282,6 +2282,7 @@ class ContextImpl extends Context {
 
         // Create the base resources for which all configuration contexts for this Activity
         // will be rebased upon.
+        // 创建基础资源，该活动的所有配置上下文都将基于该基础资源重新建立基础。
         context.setResources(resourcesManager.createBaseActivityResources(activityToken,
                 packageInfo.getResDir(),
                 splitDirs,

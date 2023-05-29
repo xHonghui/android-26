@@ -6994,6 +6994,7 @@ public class Activity extends ContextThemeWrapper
         mFragments.noteStateNotSaved();
         mCalled = false;
         mFragments.execPendingActions();
+        //调用 Activity#onCreate() 方法
         mInstrumentation.callActivityOnStart(this);
         if (!mCalled) {
             throw new SuperNotCalledException(
