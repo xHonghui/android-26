@@ -5477,7 +5477,7 @@ public final class ActivityThread {
     }
 
     /**
-     * 向 AMS 绑定 ApplicationThread
+     * 绑定应用进程Application
      * */
     private void handleBindApplication(AppBindData data) {
         // Register the UI Thread as a sensitive thread to the runtime.
@@ -6397,7 +6397,7 @@ public final class ActivityThread {
     }
 
     /**
-     * AMS绑定 ActivityThread 对象，即引用进程绑定AMS服务
+     * AMS绑定 ActivityThread 对象，即应用进程绑定AMS服务
      * */
     private void attach(boolean system) {
         sCurrentActivityThread = this;

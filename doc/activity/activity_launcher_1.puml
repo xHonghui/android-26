@@ -1,0 +1,60 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+'应用进程绑定AMS（建立Binder通信、创建Application）
+participant ActivityThread
+participant AMS
+participant IApplicationThread
+participant ApplicationThread
+participant H
+participant LoadedApk
+participant Instrumentation
+
+activate ActivityThread
+activate IApplicationThread
+activate ApplicationThread
+activate AMS
+activate H
+activate LoadedApk
+activate Instrumentation
+
+
+ActivityThread -> ActivityThread: main()
+activate ActivityThread
+deactivate ActivityThread
+ActivityThread -> ActivityThread: attach()
+activate ActivityThread
+deactivate ActivityThread
+ActivityThread -> AMS: attachApplication(ApplicationThread thread)
+note right
+    请求AMS，绑定当前应用进程，ApplicationThread
+    实现了IApplicationThread.Stub接口（Biner接口），
+    绑定后，AMS 可通过Binder直接调用 IApplicationThread.Stub
+    接口来控制应用进程
+end note
+AMS -> AMS: attachApplicationLocked()
+activate AMS
+deactivate AMS
+AMS -> IApplicationThread: bindApplication()
+note right
+    应用进程与AMS服务绑定之后，AMS通过 IApplicationThread.Stub(Binder)接口
+    调用应用进程，通知应用进程启动Activity
+end note
+IApplicationThread -> ApplicationThread: bindApplication()
+ApplicationThread -> ActivityThread: sendMessage() 发送 BIND_APPLICATION 消息类型(绑定app)
+ActivityThread -> H: handleMessage() Handler处理消息
+|||
+
+H -> ActivityThread: handleBindApplication()
+activate ActivityThread
+ActivityThread -> LoadedApk: makeApplication() 创建application，并调用attach
+ActivityThread -> Instrumentation: callApplicationOnCreate() 调用Application$onCreate()方法
+deactivate ActivityThread
+
+deactivate ActivityThread
+deactivate IApplicationThread
+deactivate ApplicationThread
+deactivate AMS
+deactivate H
+deactivate LoadedApk
+deactivate Instrumentation
+@enduml
