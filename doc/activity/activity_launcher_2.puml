@@ -1,0 +1,68 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+'AMS发送创建Activity请求，ActivityThread Handler 处理 Activity 的启动
+
+participant  AMS
+participant ActivityStackSupervisor
+participant ApplicationThread
+participant ActivityThread
+participant Activity
+participant H
+participant Instrumentation
+
+activate AMS
+AMS -> AMS: attachApplicationLocked()
+AMS -> ActivityStackSupervisor: attachApplicationLocked()
+deactivate AMS
+
+activate ActivityStackSupervisor
+ActivityStackSupervisor -> ActivityStackSupervisor: realStartActivityLocked()
+ActivityStackSupervisor -> ApplicationThread: scheduleLaunchActivity()
+deactivate ActivityStackSupervisor
+
+activate ApplicationThread
+ApplicationThread -> ActivityThread: sendMessage(H.LAUNCH_ACTIVITY) 发送启动Activity消息
+deactivate ApplicationThread
+
+activate ActivityThread
+ActivityThread -> H: handleMessage() Handler处理 LAUNCH_ACTIVITY 消息
+deactivate ActivityThread
+
+activate H
+H -> ActivityThread: handleLaunchActivity() 启动 Activity
+deactivate H
+|||
+
+activate ActivityThread
+
+ActivityThread -> ActivityThread: performLaunchActivity() 创建Activity流程
+activate ActivityThread
+
+ActivityThread -> Instrumentation: newActivity() 通过反射创建Activity
+activate Instrumentation
+deactivate Instrumentation
+
+ActivityThread -> Activity: 回调Activity$attach()
+activate Activity
+deactivate Activity
+
+ActivityThread -> Instrumentation: callActivityOnCreate() 回调Activity$onCreate()
+activate Instrumentation
+deactivate Instrumentation
+
+ActivityThread -> Activity: performStart() 回调Activity$onStart()
+activate Activity
+deactivate Activity
+
+ActivityThread -> Instrumentation: callActivityOnRestoreInstanceState() 回调Activity$onRestoreInstanceState()
+activate Instrumentation
+deactivate Instrumentation
+
+deactivate ActivityThread
+
+ActivityThread -> ActivityThread: handleResumeActivity() 调用 Activity#onResume 方法
+activate ActivityThread
+deactivate ActivityThread
+
+deactivate ActivityThread
+@enduml
