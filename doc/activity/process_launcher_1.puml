@@ -1,0 +1,50 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+'应用进程启动过程(1)
+'Launcher进程向AMS进程发送请求
+
+participant LauncherActivity
+participant Activity
+participant Instrumentation
+participant IActivityManager
+participant AMS
+
+activate Instrumentation
+activate Activity
+activate LauncherActivity
+activate IActivityManager
+activate AMS
+
+'点击桌面图标
+LauncherActivity -> LauncherActivity: onListItemClick() 桌面图标点击
+note left
+        桌面程序Activity
+        展示已安装app启动图标
+end note
+activate LauncherActivity
+deactivate LauncherActivity
+
+'包装相关请求参数
+LauncherActivity -> Activity: startActivity(Intent intent)，启动Activity
+Activity -> Activity: startActivityForResult(Intent intent, int requestCode)
+activate Activity
+deactivate Activity
+Activity -> Activity: startActivityForResult(Intent intent, int requestCode, Bundle options)
+activate Activity
+deactivate Activity
+Activity -> Instrumentation: execStartActivity()
+
+'向AMS发送请求
+Instrumentation -> IActivityManager: startActivity()
+IActivityManager -> AMS: startActivity()
+note right
+    Launcher进程向AMS进程发送请求
+end note
+
+deactivate LauncherActivity
+deactivate Activity
+deactivate Instrumentation
+deactivate IActivityManager
+deactivate AMS
+
+@enduml

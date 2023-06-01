@@ -395,6 +395,7 @@ public class Process {
 
     /**
      * State associated with the zygote process.
+     * 维护与 Zygote 进程的连接状态
      * @hide
      */
     public static final ZygoteProcess zygoteProcess =

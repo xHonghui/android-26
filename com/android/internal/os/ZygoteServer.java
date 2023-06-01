@@ -167,7 +167,7 @@ class ZygoteServer {
                     peers.add(newPeer);
                     fds.add(newPeer.getFileDesciptor());
                 } else {
-                    //不断处理客户端（AMS）发送过来的请求
+                    //todo 不断处理客户端（AMS）发送过来的请求
                     boolean done = peers.get(i).runOnce(this);
                     if (done) {
                         //处理完成，移除

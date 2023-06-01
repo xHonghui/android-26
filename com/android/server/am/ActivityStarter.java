@@ -272,7 +272,7 @@ class ActivityStarter {
         mLastStartReason = reason;
         mLastStartActivityTimeMs = System.currentTimeMillis();
         mLastStartActivityRecord[0] = null;
-        //启动activity
+        //todo 启动activity
         mLastStartActivityResult = startActivity(caller, intent, ephemeralIntent, resolvedType,
                 aInfo, rInfo, voiceSession, voiceInteractor, resultTo, resultWho, requestCode,
                 callingPid, callingUid, callingPackage, realCallingPid, realCallingUid, startFlags,
@@ -571,7 +571,7 @@ class ActivityStarter {
         }
 
         doPendingActivityLaunchesLocked(false);
-        //启动activity
+        //todo 启动activity
         return startActivity(r, sourceRecord, voiceSession, voiceInteractor, startFlags, true,
                 options, inTask, outActivity);
     }
@@ -732,8 +732,8 @@ class ActivityStarter {
             }
         }
         // Collect information about the target of the Intent.(收集有关 Intent 目标的信息。)
-        //根据intent在系统中找到合适的应用的activity，如果有多个activity可选择，
-        //则会弹出 ResolverActivity 让用户选择合适的应用。
+        //todo 根据intent在系统中找到合适的应用的activity，如果有多个activity可选择，
+        // 则会弹出 ResolverActivity 让用户选择合适的应用。
         ActivityInfo aInfo = mSupervisor.resolveActivity(intent, rInfo, startFlags, profilerInfo);
 
         ActivityOptions options = ActivityOptions.fromBundle(bOptions);
@@ -838,7 +838,7 @@ class ActivityStarter {
             }
 
             final ActivityRecord[] outRecord = new ActivityRecord[1];
-            //打开 Activity
+            //todo 打开 Activity
             int res = startActivityLocked(caller, intent, ephemeralIntent, resolvedType,
                     aInfo, rInfo, voiceSession, voiceInteractor,
                     resultTo, resultWho, requestCode, callingPid,
@@ -1020,7 +1020,7 @@ class ActivityStarter {
         int result = START_CANCELED;
         try {
             mService.mWindowManager.deferSurfaceLayout();
-            //启动activity
+            //todo 启动activity
             result = startActivityUnchecked(r, sourceRecord, voiceSession, voiceInteractor,
                     startFlags, doResume, options, inTask, outActivity);
         } finally {
@@ -1271,7 +1271,7 @@ class ActivityStarter {
                 if (mTargetStack.isFocusable() && !mSupervisor.isFocusedStack(mTargetStack)) {
                     mTargetStack.moveToFront("startActivityUnchecked");
                 }
-                //启动activity
+                //todo 启动activity
                 mSupervisor.resumeFocusedStackTopActivityLocked(mTargetStack, mStartActivity,
                         mOptions);
             }

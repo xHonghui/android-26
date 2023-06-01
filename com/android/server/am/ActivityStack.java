@@ -2214,7 +2214,7 @@ class ActivityStack<T extends StackWindowController> extends ConfigurationContai
         try {
             // Protect against recursion.
             mStackSupervisor.inResumeTopActivity = true;
-            //启动activity
+            //todo 启动activity
             result = resumeTopActivityInnerLocked(prev, options);
         } finally {
             mStackSupervisor.inResumeTopActivity = false;
@@ -2240,6 +2240,9 @@ class ActivityStack<T extends StackWindowController> extends ConfigurationContai
         mRecentTasks.addLocked(task);
     }
 
+    /**
+     * 启动 Activity
+     * */
     private boolean resumeTopActivityInnerLocked(ActivityRecord prev, ActivityOptions options) {
         if (!mService.mBooting && !mService.mBooted) {
             // Not ready yet!

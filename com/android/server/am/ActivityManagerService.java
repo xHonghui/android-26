@@ -3755,7 +3755,7 @@ public class ActivityManagerService extends IActivityManager.Stub
         }
 
         checkTime(startTime, "startProcess: stepping in to startProcess");
-        //向 Zygote 进程发送请求，请求创建新进程
+        //todo 向 Zygote 进程发送请求，请求创建新进程
         startProcessLocked(
                 app, hostingType, hostingNameStr, abiOverride, entryPoint, entryPointArgs);
         checkTime(startTime, "startProcess: done starting proc!");
@@ -3923,7 +3923,7 @@ public class ActivityManagerService extends IActivityManager.Stub
             // Start the process.  It will either succeed and return a result containing
             // the PID of the new process, or else throw a RuntimeException.
             boolean isActivityProcess = (entryPoint == null);
-            //新进程主入口
+            //todo 新进程主入口
             if (entryPoint == null) entryPoint = "android.app.ActivityThread";
             Trace.traceBegin(Trace.TRACE_TAG_ACTIVITY_MANAGER, "Start proc: " +
                     app.processName);
@@ -4515,7 +4515,8 @@ public class ActivityManagerService extends IActivityManager.Stub
         enforceNotIsolatedCaller("startActivity");
         userId = mUserController.handleIncomingUser(Binder.getCallingPid(), Binder.getCallingUid(),
                 userId, false, ALLOW_FULL_ONLY, "startActivity", null);
-        // TODO: Switch to user app stacks here.（在此处切换到用户应用程序堆栈。）
+        // TODO: （在此处切换到用户应用程序堆栈。）
+        // todo: 启动 Activity
         return mActivityStarter.startActivityMayWait(caller, -1, callingPackage, intent,
                 resolvedType, null, null, resultTo, resultWho, requestCode, startFlags,
                 profilerInfo, null, null, bOptions, false, userId, null, null,

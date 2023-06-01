@@ -1,0 +1,80 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+'Zygote进程fork应用进程，并执行应用进程ActivityThread （主入口main()）
+
+participant ZygoteInit
+participant ZygoteServer
+participant ZygoteConnection
+participant Zygote
+participant RuntimeInit
+
+activate ZygoteInit
+activate ZygoteServer
+activate ZygoteConnection
+activate Zygote
+activate RuntimeInit
+
+
+ZygoteInit -> ZygoteInit: main() Zygote进程启动
+activate ZygoteInit
+deactivate ZygoteInit
+ZygoteInit -> ZygoteServer: registerServerSocket 注册Zygote进程Socket服务
+ZygoteInit -> ZygoteServer: runSelectLoop() 循环等待 AMS 请求
+ZygoteServer -> ZygoteServer: acceptCommandPeer()
+activate ZygoteServer
+deactivate ZygoteServer
+note left
+    监听Socket请求，返回一个 ZygoteConnection 对象，
+    并存储到一个 peers 集合中
+end note
+
+ZygoteServer -> ZygoteConnection: runOne() 处理AMS发送过来的请求
+ZygoteConnection -> ZygoteConnection: runOne()
+activate ZygoteConnection
+ZygoteConnection -> Zygote: forkAndSpecialize() 通过fork创建子进程
+Zygote -> Zygote: nativeForkAndSpecialize() 调用native方法创建子进程
+activate Zygote
+Zygote -> ZygoteConnection: native fork进程成功
+deactivate Zygote
+
+'回归到 ZygoteConnection 类的 runOnce() 方法
+ZygoteConnection -> ZygoteConnection: handleChildProc() 子进程相关处理
+activate ZygoteConnection
+deactivate ZygoteConnection
+note right
+    pid==0，表示当前进程为子进程，
+    即前面fork出来的应用进程
+end note
+ZygoteConnection -> ZygoteInit: zygoteInit() 子进程初始化
+deactivate ZygoteConnection
+
+ZygoteInit -> ZygoteInit: zygoteInit
+activate ZygoteInit
+deactivate ZygoteInit
+note right
+    //重定向log输入流
+    RuntimeInit.redirectLogStreams();
+    //为当前VM设置未捕获异常器
+    RuntimeInit.commonInit();
+    //Biner驱动初始化，该方法完成后，可通过Binder进行通信
+    ZygoteInit.nativeZygoteInit();
+    //主要调用ActivityThread的main方法
+    RuntimeInit.applicationInit(targetSdkVersion, argv, classLoader);
+end note
+ZygoteInit -> RuntimeInit: applicationInit() 主要调用ActivityThread的main方法
+RuntimeInit -> RuntimeInit: invokeStaticMain()，抛出 Zygote.MethodAndArgsCaller 异常
+activate RuntimeInit
+RuntimeInit -> ZygoteInit: 通过throw一层层往外抛处 Zygote.MethodAndArgsCaller 对象
+deactivate RuntimeInit
+note left
+    经过层层throw，将Zygote.MethodAndArgsCaller对象抛到ZygoteInit$main()方法，
+    main()方法针对Zygote.MethodAndArgsCaller进行捕获并调用其run()方法，
+    至此，应用进程fork完成并执行进程主入口ActivityThread$main()方法
+end note
+
+deactivate ZygoteInit
+deactivate ZygoteServer
+deactivate ZygoteConnection
+deactivate Zygote
+deactivate RuntimeInit
+@enduml

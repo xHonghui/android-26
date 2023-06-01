@@ -486,7 +486,7 @@ public class ZygoteProcess {
 
         if (primaryZygoteState == null || primaryZygoteState.isClosed()) {
             try {
-                //连接
+                //如尚未建立连接或连接已关闭
                 primaryZygoteState = ZygoteState.connect(mSocket);
             } catch (IOException ioe) {
                 throw new ZygoteStartFailedEx("Error connecting to primary zygote", ioe);
@@ -498,6 +498,7 @@ public class ZygoteProcess {
         }
 
         // The primary zygote didn't match. Try the secondary.
+        // 初级合子不匹配。尝试二级。
         if (secondaryZygoteState == null || secondaryZygoteState.isClosed()) {
             try {
                 secondaryZygoteState = ZygoteState.connect(mSecondarySocket);

@@ -781,7 +781,7 @@ public class ZygoteInit {
             }
 
             Log.i(TAG, "Accepting command socket connections");
-            //todo 登台 socket 套接字连接（AMS的请求）
+            //todo 等待 socket 套接字连接（AMS的请求）
             zygoteServer.runSelectLoop(abiList);
             zygoteServer.closeServerSocket();
         } catch (Zygote.MethodAndArgsCaller caller) {
@@ -863,7 +863,7 @@ public class ZygoteInit {
         RuntimeInit.commonInit();
         //Biner驱动初始化，该方法完成后，可通过Binder进行通信
         ZygoteInit.nativeZygoteInit();
-        //主要调用SystemServer的main方法
+        //主要调用ActivityThread的main方法
         RuntimeInit.applicationInit(targetSdkVersion, argv, classLoader);
     }
 

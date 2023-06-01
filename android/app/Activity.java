@@ -4470,7 +4470,7 @@ public class Activity extends ContextThemeWrapper
         if (mParent == null) {
             //根 Activity
             options = transferSpringboardActivityOptions(options);
-            //调用 Instrumentation 的 execStartActivity 方法启动根Activity
+            //todo 调用 Instrumentation 的 execStartActivity 方法启动根Activity
             Instrumentation.ActivityResult ar =
                 mInstrumentation.execStartActivity(
                     this, mMainThread.getApplicationThread(), mToken, this,
@@ -4758,6 +4758,9 @@ public class Activity extends ContextThemeWrapper
      * @see #startActivity(Intent, Bundle)
      * @see #startActivityForResult
      */
+    /**
+     * 启动Activity
+     * */
     @Override
     public void startActivity(Intent intent) {
         this.startActivity(intent, null);
@@ -4793,6 +4796,7 @@ public class Activity extends ContextThemeWrapper
         } else {
             // Note we want to go through this call for compatibility with
             // applications that may have overridden the method.
+            // 请注意，我们希望通过此调用与可能已覆盖该方法的应用程序兼容。
             startActivityForResult(intent, -1);
         }
     }

@@ -1592,7 +1592,7 @@ public class ActivityStackSupervisor extends ConfigurationContainer implements D
             // If a dead object exception was thrown -- fall through to
             // restart the application.
         }
-        //应用进程还未创建，则通过AMS调用startProcessLocked向Zygote进程发送请求
+        //todo 应用进程还未创建，则通过AMS调用startProcessLocked向Zygote进程发送请求
         mService.startProcessLocked(r.processName, r.info.applicationInfo, true, 0,
                 "activity", r.intent.getComponent(), false, false, true);
     }
@@ -2070,6 +2070,9 @@ public class ActivityStackSupervisor extends ConfigurationContainer implements D
         return resumeFocusedStackTopActivityLocked(null, null, null);
     }
 
+    /**
+     * 启动 Activity
+     * */
     boolean resumeFocusedStackTopActivityLocked(
             ActivityStack targetStack, ActivityRecord target, ActivityOptions targetOptions) {
         if (targetStack != null && isFocusedStack(targetStack)) {
@@ -2077,7 +2080,7 @@ public class ActivityStackSupervisor extends ConfigurationContainer implements D
         }
         final ActivityRecord r = mFocusedStack.topRunningActivityLocked();
         if (r == null || r.state != RESUMED) {
-            //启动activity
+            //todo 启动activity
             mFocusedStack.resumeTopActivityUncheckedLocked(null, null);
         } else if (r.state == RESUMED) {
             // Kick off any lingering app transitions form the MoveTaskToFront operation.
