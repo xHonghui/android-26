@@ -10,14 +10,16 @@ participant Activity
 participant H
 participant Instrumentation
 
-activate AMS
 AMS -> AMS: attachApplicationLocked()
+activate AMS
 AMS -> ActivityStackSupervisor: attachApplicationLocked()
 deactivate AMS
 
 activate ActivityStackSupervisor
 ActivityStackSupervisor -> ActivityStackSupervisor: realStartActivityLocked()
+activate ActivityStackSupervisor
 ActivityStackSupervisor -> ApplicationThread: scheduleLaunchActivity()
+deactivate ActivityStackSupervisor
 deactivate ActivityStackSupervisor
 
 activate ApplicationThread
@@ -34,11 +36,10 @@ deactivate H
 |||
 
 activate ActivityThread
-
 ActivityThread -> ActivityThread: performLaunchActivity() 创建Activity流程
 activate ActivityThread
 
-ActivityThread -> Instrumentation: newActivity() 通过反射创建Activity
+ActivityThread -> Instrumentation: newActivity()通过反射创建Activity
 activate Instrumentation
 deactivate Instrumentation
 

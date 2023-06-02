@@ -9,12 +9,6 @@ participant Instrumentation
 participant IActivityManager
 participant AMS
 
-activate Instrumentation
-activate Activity
-activate LauncherActivity
-activate IActivityManager
-activate AMS
-
 '点击桌面图标
 LauncherActivity -> LauncherActivity: onListItemClick() 桌面图标点击
 note left
@@ -22,29 +16,33 @@ note left
         展示已安装app启动图标
 end note
 activate LauncherActivity
-deactivate LauncherActivity
-
 '包装相关请求参数
 LauncherActivity -> Activity: startActivity(Intent intent)，启动Activity
+deactivate LauncherActivity
+
+activate Activity
 Activity -> Activity: startActivityForResult(Intent intent, int requestCode)
 activate Activity
 deactivate Activity
 Activity -> Activity: startActivityForResult(Intent intent, int requestCode, Bundle options)
 activate Activity
-deactivate Activity
 Activity -> Instrumentation: execStartActivity()
+deactivate Activity
+deactivate Activity
 
 '向AMS发送请求
+activate Instrumentation
 Instrumentation -> IActivityManager: startActivity()
+deactivate Instrumentation
+
+activate IActivityManager
 IActivityManager -> AMS: startActivity()
 note right
     Launcher进程向AMS进程发送请求
 end note
-
-deactivate LauncherActivity
-deactivate Activity
-deactivate Instrumentation
 deactivate IActivityManager
+activate AMS
+|||
 deactivate AMS
 
 @enduml

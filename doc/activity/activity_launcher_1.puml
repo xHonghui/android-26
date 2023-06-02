@@ -9,21 +9,19 @@ participant H
 participant LoadedApk
 participant Instrumentation
 
-activate ActivityThread
-activate IApplicationThread
-activate ApplicationThread
-activate AMS
-activate H
-activate LoadedApk
-activate Instrumentation
+'activate ActivityThread
+'activate IApplicationThread
+'activate ApplicationThread
+'activate AMS
+'activate H
+'activate LoadedApk
+'activate Instrumentation
 
 
 ActivityThread -> ActivityThread: main()
 activate ActivityThread
-deactivate ActivityThread
 ActivityThread -> ActivityThread: attach()
 activate ActivityThread
-deactivate ActivityThread
 ActivityThread -> AMS: attachApplication(ApplicationThread thread)
 note right
     请求AMS，绑定当前应用进程，ApplicationThread
@@ -31,6 +29,10 @@ note right
     绑定后，AMS 可通过Binder直接调用 IApplicationThread.Stub
     接口来控制应用进程
 end note
+deactivate ActivityThread
+deactivate ActivityThread
+
+activate AMS
 AMS -> AMS: attachApplicationLocked()
 activate AMS
 deactivate AMS
@@ -39,22 +41,41 @@ note right
     应用进程与AMS服务绑定之后，AMS通过 IApplicationThread.Stub(Binder)接口
     调用应用进程，通知应用进程启动Activity
 end note
-IApplicationThread -> ApplicationThread: bindApplication()
-ApplicationThread -> ActivityThread: sendMessage() 发送 BIND_APPLICATION 消息类型(绑定app)
-ActivityThread -> H: handleMessage() Handler处理消息
-|||
+deactivate AMS
 
+activate IApplicationThread
+IApplicationThread -> ApplicationThread: bindApplication()
+deactivate IApplicationThread
+
+activate ApplicationThread
+ApplicationThread -> ActivityThread: sendMessage() 发送 BIND_APPLICATION 消息类型(绑定app)
+deactivate ApplicationThread
+
+activate ActivityThread
+ActivityThread -> H: handleMessage() Handler处理消息
+deactivate ActivityThread
+
+|||
+activate H
 H -> ActivityThread: handleBindApplication()
+deactivate H
+
 activate ActivityThread
 ActivityThread -> LoadedApk: makeApplication() 创建application，并调用attach
+activate LoadedApk
+deactivate LoadedApk
+
 ActivityThread -> Instrumentation: callApplicationOnCreate() 调用Application$onCreate()方法
+activate Instrumentation
+deactivate Instrumentation
 deactivate ActivityThread
 
-deactivate ActivityThread
-deactivate IApplicationThread
-deactivate ApplicationThread
-deactivate AMS
-deactivate H
-deactivate LoadedApk
-deactivate Instrumentation
+'deactivate ActivityThread
+'deactivate IApplicationThread
+'deactivate ApplicationThread
+'deactivate AMS
+'deactivate H
+'deactivate LoadedApk
+'deactivate Instrumentation
+
 @enduml

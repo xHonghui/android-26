@@ -9,67 +9,74 @@ participant ActivityStack
 participant Process
 participant ZygoteProcess
 
-
-activate AMS
-activate ActivityStarter
-activate ActivityStackSupervisor
-activate ActivityStack
-activate Process
-activate ZygoteProcess
-
-
 AMS -> AMS: startActivity()
 activate AMS
-deactivate AMS
 AMS -> AMS: startActivityAsUser()
 activate AMS
-deactivate AMS
 AMS -> ActivityStarter: startActivityMayWait()
+deactivate AMS
+deactivate AMS
 
+activate ActivityStarter
 ActivityStarter -> ActivityStarter: startActivityLocked()
 activate ActivityStarter
-deactivate ActivityStarter
 ActivityStarter -> ActivityStarter: startActivity()
 activate ActivityStarter
-deactivate ActivityStarter
 ActivityStarter -> ActivityStarter: startActivity()
 activate ActivityStarter
 deactivate ActivityStarter
 ActivityStarter -> ActivityStarter: startActivityUnchecked()
 activate ActivityStarter
+ActivityStarter -> ActivityStackSupervisor: resumeFocusedStackTopActivityLocked()
+deactivate ActivityStarter
+deactivate ActivityStarter
+deactivate ActivityStarter
 deactivate ActivityStarter
 
-ActivityStarter -> ActivityStackSupervisor: resumeFocusedStackTopActivityLocked()
+activate ActivityStackSupervisor
 ActivityStackSupervisor -> ActivityStack: resumeTopActivityUncheckedLocked()
+deactivate ActivityStackSupervisor
+
+activate ActivityStack
 ActivityStack -> ActivityStack: resumeTopActivityInnerLocked()
 activate ActivityStack
-deactivate ActivityStack
 ActivityStack -> ActivityStackSupervisor: startSpecificActivityLocked()
+deactivate ActivityStack
+deactivate ActivityStack
+
+activate ActivityStackSupervisor
 ActivityStackSupervisor -> AMS: startProcessLocked()
 note left
     进程未存在，调用AMS服务
     走创建进程相关逻辑
 end note
+deactivate ActivityStackSupervisor
 
 'AMS服务，请求 Zygote 创建用户进程流程
+activate AMS
 AMS -> AMS: startProcessLocked()
 activate AMS
-deactivate AMS
 AMS -> AMS: startProcessLocked()
 activate AMS
-deactivate AMS
 note left
     1、设置新进程主入口
     2、设置进程其他相关参数
 end note
 AMS -> Process: start()
+deactivate AMS
+deactivate AMS
+deactivate AMS
+
+activate Process
 Process -> ZygoteProcess: start()
 note right
     ZygoteProcess：负责维护AMS进程与Zygote进程的连接
 end note
+deactivate Process
+
+activate ZygoteProcess
 ZygoteProcess -> ZygoteProcess: startViaZygote()，封装进程相关参数到 argsForZygote 列表中
 activate ZygoteProcess
-deactivate ZygoteProcess
 ZygoteProcess -> ZygoteProcess: openZygoteSocketIfNeeded()
 note right
     如未连接，则通过Socket与Zygote进程创建链接，
@@ -77,19 +84,14 @@ note right
 end note
 activate ZygoteProcess
 deactivate ZygoteProcess
+
 ZygoteProcess -> ZygoteProcess: zygoteSendArgsAndGetResult()
-activate ZygoteProcess
-deactivate ZygoteProcess
 note right
     通过Socket将进程相关参数写入输入流并发送给Zygote进程
 end note
-
-
-
-deactivate AMS
-deactivate ActivityStarter
-deactivate ActivityStackSupervisor
-deactivate ActivityStack
-deactivate Process
+activate ZygoteProcess
 deactivate ZygoteProcess
+deactivate ZygoteProcess
+deactivate ZygoteProcess
+
 @enduml
