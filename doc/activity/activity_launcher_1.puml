@@ -66,16 +66,8 @@ activate LoadedApk
 deactivate LoadedApk
 
 ActivityThread -> Instrumentation: callApplicationOnCreate() 调用Application$onCreate()方法
+deactivate ActivityThread
 activate Instrumentation
 deactivate Instrumentation
-deactivate ActivityThread
-
-'deactivate ActivityThread
-'deactivate IApplicationThread
-'deactivate ApplicationThread
-'deactivate AMS
-'deactivate H
-'deactivate LoadedApk
-'deactivate Instrumentation
 
 @enduml
