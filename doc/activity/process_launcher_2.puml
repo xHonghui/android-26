@@ -40,12 +40,12 @@ deactivate ActivityStackSupervisor
 activate ActivityStack
 ActivityStack -> ActivityStack: resumeTopActivityInnerLocked()
 activate ActivityStack
-ActivityStack -> ActivityStackSupervisor: startSpecificActivityLocked()
+ActivityStack --> ActivityStackSupervisor: startSpecificActivityLocked()
 deactivate ActivityStack
 deactivate ActivityStack
 
 activate ActivityStackSupervisor
-ActivityStackSupervisor -> AMS: startProcessLocked()
+ActivityStackSupervisor --> AMS: startProcessLocked()
 note left
     进程未存在，调用AMS服务
     走创建进程相关逻辑

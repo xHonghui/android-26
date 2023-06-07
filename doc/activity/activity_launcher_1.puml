@@ -48,7 +48,7 @@ IApplicationThread -> ApplicationThread: bindApplication()
 deactivate IApplicationThread
 
 activate ApplicationThread
-ApplicationThread -> ActivityThread: sendMessage() 发送 BIND_APPLICATION 消息类型(绑定app)
+ApplicationThread --> ActivityThread: sendMessage() 发送 BIND_APPLICATION 消息类型(绑定app)
 deactivate ApplicationThread
 
 activate ActivityThread
@@ -57,7 +57,7 @@ deactivate ActivityThread
 
 |||
 activate H
-H -> ActivityThread: handleBindApplication()
+H --> ActivityThread: handleBindApplication()
 deactivate H
 
 activate ActivityThread

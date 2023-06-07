@@ -33,7 +33,7 @@ ZygoteConnection -> Zygote: forkAndSpecialize() 通过fork创建子进程
 activate Zygote
 Zygote -> Zygote: nativeForkAndSpecialize() 调用native方法创建子进程
 activate Zygote
-Zygote -> ZygoteConnection: native fork进程成功
+Zygote --> ZygoteConnection: native fork进程成功
 deactivate Zygote
 deactivate Zygote
 
@@ -44,7 +44,7 @@ note right
     pid==0，表示当前进程为子进程，
     即前面fork出来的应用进程
 end note
-ZygoteConnection -> ZygoteInit: zygoteInit() 子进程初始化
+ZygoteConnection --> ZygoteInit: zygoteInit() 子进程初始化
 deactivate ZygoteConnection
 deactivate ZygoteConnection
 
@@ -68,7 +68,7 @@ deactivate ZygoteInit
 activate RuntimeInit
 RuntimeInit -> RuntimeInit: invokeStaticMain()，抛出 Zygote.MethodAndArgsCaller 异常
 activate RuntimeInit
-RuntimeInit -> ZygoteInit: 通过throw一层层往外抛处 Zygote.MethodAndArgsCaller 对象
+RuntimeInit --> ZygoteInit: 通过throw一层层往外抛处 Zygote.MethodAndArgsCaller 对象
 deactivate RuntimeInit
 deactivate RuntimeInit
 
