@@ -35,12 +35,13 @@ deactivate ActivityThread
 activate AMS
 AMS -> AMS: attachApplicationLocked()
 activate AMS
-deactivate AMS
+
 AMS -> IApplicationThread: bindApplication()
 note right
     应用进程与AMS服务绑定之后，AMS通过 IApplicationThread.Stub(Binder)接口
     调用应用进程，通知应用进程启动Activity
 end note
+deactivate AMS
 deactivate AMS
 
 activate IApplicationThread

@@ -89,6 +89,10 @@ public abstract class DisplayEventReceiver {
         }
 
         mMessageQueue = looper.getQueue();
+        //简单来说，FrameDisplayEventReceiver 的初始化过程中，通过 BitTube(本质是一个 socket pair)，
+        // 来传递和请求 Vsync 事件，当 SurfaceFlinger 收到 Vsync 事件之后，通过 appEventThread 将这个事件通过 BitTube 传给 DisplayEventDispatcher ，
+        // DisplayEventDispatcher 通过 BitTube 的接收端监听到 Vsync 事件之后，回调 Choreographer.FrameDisplayEventReceiver.onVsync ，
+        // 触发开始一帧的绘制
         mReceiverPtr = nativeInit(new WeakReference<DisplayEventReceiver>(this), mMessageQueue,
                 vsyncSource);
 
@@ -155,6 +159,7 @@ public abstract class DisplayEventReceiver {
     /**
      * Schedules a single vertical sync pulse to be delivered when the next
      * display frame begins.
+     * 安排在下一个显示帧开始时传送单个垂直同步脉冲。
      */
     public void scheduleVsync() {
         if (mReceiverPtr == 0) {
@@ -166,6 +171,10 @@ public abstract class DisplayEventReceiver {
     }
 
     // Called from native code.
+    /**
+     * 从 native 代码调用。
+     * @param timestampNanos: Vsync同步时间
+     * */
     @SuppressWarnings("unused")
     private void dispatchVsync(long timestampNanos, int builtInDisplayId, int frame) {
         onVsync(timestampNanos, builtInDisplayId, frame);

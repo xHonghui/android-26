@@ -47,6 +47,7 @@ import android.os.storage.IStorageManager;
 import android.util.BootTimingsTraceLog;
 import android.util.DisplayMetrics;
 import android.util.EventLog;
+import android.util.EventLogTags;
 import android.util.Slog;
 import android.view.WindowManager;
 
@@ -255,6 +256,7 @@ public final class SystemServer {
 
     /**
      * The main entry point from zygote.
+     * zygote 的主要入口点。
      */
     public static void main(String[] args) {
         new SystemServer().run();
@@ -262,6 +264,7 @@ public final class SystemServer {
 
     public SystemServer() {
         // Check for factory test mode.
+        // 检查工厂测试模式。
         mFactoryTestMode = FactoryTest.getMode();
         // Remember if it's runtime restart(when sys.boot_completed is already set) or reboot
         mRuntimeRestart = "1".equals(SystemProperties.get("sys.boot_completed"));
@@ -391,8 +394,11 @@ public final class SystemServer {
         // Start services.
         try {
             traceBeginAndSlog("StartServices");
+            //1、启动引导服务
             startBootstrapServices();
+            //2、启动核心服务
             startCoreServices();
+            //3、启动其他服务
             startOtherServices();
             SystemServerInitThreadPool.shutdown();
         } catch (Throwable ex) {
@@ -682,6 +688,7 @@ public final class SystemServer {
         SerialService serial = null;
         NetworkTimeUpdateService networkTimeUpdater = null;
         CommonTimeManagementService commonTimeMgmtService = null;
+        //输入系统服务
         InputManagerService inputManager = null;
         TelephonyRegistry telephonyRegistry = null;
         ConsumerIrService consumerIr = null;
@@ -809,6 +816,7 @@ public final class SystemServer {
             watchdog.init(context, mActivityManagerService);
             traceEnd();
 
+            //创建IMS
             traceBeginAndSlog("StartInputManagerService");
             inputManager = new InputManagerService(context);
             traceEnd();
@@ -817,10 +825,13 @@ public final class SystemServer {
             // WMS needs sensor service ready
             ConcurrentUtils.waitForFutureNoInterrupt(mSensorServiceStart, START_SENSOR_SERVICE);
             mSensorServiceStart = null;
+            //创建WindowManagerService，IMS作为参数传入（IMS与WMS有交互，IMS需要通过WMS将输入事件分发到目标窗口）
             wm = WindowManagerService.main(context, inputManager,
                     mFactoryTestMode != FactoryTest.FACTORY_TEST_LOW_LEVEL,
                     !mFirstBoot, mOnlyCore, new PhoneWindowManager());
+            //将WMS添加到ServiceManager
             ServiceManager.addService(Context.WINDOW_SERVICE, wm);
+            //将IMS添加到ServiceManager
             ServiceManager.addService(Context.INPUT_SERVICE, inputManager);
             traceEnd();
 
@@ -844,7 +855,9 @@ public final class SystemServer {
             traceEnd();
 
             traceBeginAndSlog("StartInputManager");
+            //设置Callback，方便AMS与IMS交互（初步猜测为监听事件处理回调）
             inputManager.setWindowManagerCallbacks(wm.getInputMonitor());
+            //启动IMS
             inputManager.start();
             traceEnd();
 

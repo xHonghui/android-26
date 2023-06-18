@@ -1382,7 +1382,7 @@ public final class ViewRootImpl implements ViewParent,
             if (mProfile) {
                 Debug.startMethodTracing("ViewAncestor");
             }
-
+            //绘制流程
             performTraversals();
 
             if (mProfile) {
@@ -6730,6 +6730,7 @@ public final class ViewRootImpl implements ViewParent,
     final class TraversalRunnable implements Runnable {
         @Override
         public void run() {
+            //真正开始执行 measure、layout、draw（绘制流程）
             doTraversal();
         }
     }
@@ -6765,6 +6766,7 @@ public final class ViewRootImpl implements ViewParent,
     final class ConsumeBatchedInputRunnable implements Runnable {
         @Override
         public void run() {
+            //加下来就是熟悉的事件分发流程
             doConsumeBatchedInput(mChoreographer.getFrameTimeNanos());
         }
     }

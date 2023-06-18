@@ -318,6 +318,7 @@ public class InputManagerService extends IInputManager.Stub
                 context.getResources().getBoolean(R.bool.config_useDevInputEventForAudioJack);
         Slog.i(TAG, "Initializing input manager, mUseDevInputEventForAudioJack="
                 + mUseDevInputEventForAudioJack);
+        //native 初始化
         mPtr = nativeInit(this, mContext, mHandler.getLooper().getQueue());
 
         String doubleTouchGestureEnablePath = context.getResources().getString(
@@ -336,6 +337,9 @@ public class InputManagerService extends IInputManager.Stub
         mWiredAccessoryCallbacks = callbacks;
     }
 
+    /**
+     * IMS 启动
+     * */
     public void start() {
         Slog.i(TAG, "Starting input manager");
         nativeStart(mPtr);

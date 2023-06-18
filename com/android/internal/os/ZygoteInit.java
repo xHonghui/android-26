@@ -506,7 +506,8 @@ public class ZygoteInit {
 
             /*
              * Pass the remaining arguments to SystemServer.
-             * 将剩余的参数传递给 SystemServer。完成启动SystemServer进程剩余的工作（进程主入口？）
+             * 将剩余的参数传递给 SystemServer。完成启动SystemServer进程剩余的工作
+             * 该方法 throw Zygote.MethodAndArgsCaller 对象，上层接受并调用其 run() 方法，run()方法通过反射执行进程主入口（com.android.server.SystemServer）
              */
             ZygoteInit.zygoteInit(parsedArgs.targetSdkVersion, parsedArgs.remainingArgs, cl);
         }

@@ -105,6 +105,7 @@ public final class Choreographer {
             if (looper == null) {
                 throw new IllegalStateException("The current thread must have a looper!");
             }
+            //创建 Choreographer 对象，监听 SurfaceFlinger Vsync 同步事件（Vsync-app）
             return new Choreographer(looper, VSYNC_SOURCE_APP);
         }
     };
@@ -118,6 +119,7 @@ public final class Choreographer {
                     if (looper == null) {
                         throw new IllegalStateException("The current thread must have a looper!");
                     }
+                    //创建 Choreographer 对象，监听 SurfaceFlinger Vsync 同步事件（Vsync-sf）
                     return new Choreographer(looper, VSYNC_SOURCE_SURFACE_FLINGER);
                 }
             };
@@ -132,6 +134,7 @@ public final class Choreographer {
 
     // Set a limit to warn about skipped frames.
     // Skipped frames imply jank.
+    // 设置一个限制以警告跳帧。跳过的帧意味着卡顿。
     private static final int SKIPPED_FRAME_WARNING_LIMIT = SystemProperties.getInt(
             "debug.choreographer.skipwarning", 30);
 
@@ -152,6 +155,8 @@ public final class Choreographer {
     // The display event receiver can only be accessed by the looper thread to which
     // it is attached.  We take care to ensure that we post message to the looper
     // if appropriate when interacting with the display event receiver.
+    // 显示事件接收器只能由它所附加的循环线程访问。在与显示事件接收器交互时，
+    // 我们注意确保在适当的情况下将消息发布到循环器。
     private final FrameDisplayEventReceiver mDisplayEventReceiver;
 
     private CallbackRecord mCallbackPool;
@@ -220,14 +225,16 @@ public final class Choreographer {
 
     private Choreographer(Looper looper, int vsyncSource) {
         mLooper = looper;
+        //1、初始化 FrameHandler
         mHandler = new FrameHandler(looper);
+        //2、初始化 DisplayEventReceiver
         mDisplayEventReceiver = USE_VSYNC
                 ? new FrameDisplayEventReceiver(looper, vsyncSource)
                 : null;
         mLastFrameTimeNanos = Long.MIN_VALUE;
 
         mFrameIntervalNanos = (long)(1000000000 / getRefreshRate());
-
+        //3、初始化 CallbacksQueues，默认大小 3+1
         mCallbackQueues = new CallbackQueue[CALLBACK_LAST + 1];
         for (int i = 0; i <= CALLBACK_LAST; i++) {
             mCallbackQueues[i] = new CallbackQueue();
@@ -410,6 +417,8 @@ public final class Choreographer {
             mCallbackQueues[callbackType].addCallbackLocked(dueTime, action, token);
 
             if (dueTime <= now) {
+                //请求 Vsync :
+                // scheduleFrameLocked ->scheduleVsyncLocked-> mDisplayEventReceiver.scheduleVsync ->nativeScheduleVsync
                 scheduleFrameLocked(now);
             } else {
                 Message msg = mHandler.obtainMessage(MSG_DO_SCHEDULE_CALLBACK, action);
@@ -597,6 +606,9 @@ public final class Choreographer {
         }
     }
 
+    /**
+     * Choreographer 处理绘制的逻辑核心所在
+     * */
     void doFrame(long frameTimeNanos, int frame) {
         final long startNanos;
         synchronized (mLock) {
@@ -610,12 +622,15 @@ public final class Choreographer {
                         + ((frameTimeNanos - mLastFrameTimeNanos) * 0.000001f) + " ms");
             }
 
+            //1、计算掉帧逻辑
             long intendedFrameTimeNanos = frameTimeNanos;
             startNanos = System.nanoTime();
+            //真正doFrame的时间 与 Vsync 同步时间对比，如果时间差大于 mFrameIntervalNanos，则表示丢帧
             final long jitterNanos = startNanos - frameTimeNanos;
             if (jitterNanos >= mFrameIntervalNanos) {
                 final long skippedFrames = jitterNanos / mFrameIntervalNanos;
                 if (skippedFrames >= SKIPPED_FRAME_WARNING_LIMIT) {
+                    //跳帧
                     Log.i(TAG, "Skipped " + skippedFrames + " frames!  "
                             + "The application may be doing too much work on its main thread.");
                 }
@@ -648,9 +663,11 @@ public final class Choreographer {
             Trace.traceBegin(Trace.TRACE_TAG_VIEW, "Choreographer#doFrame");
             AnimationUtils.lockAnimationClock(frameTimeNanos / TimeUtils.NANOS_PER_MS);
 
+            //事件分发流程
             mFrameInfo.markInputHandlingStart();
             doCallbacks(Choreographer.CALLBACK_INPUT, frameTimeNanos);
 
+            //动画
             mFrameInfo.markAnimationsStart();
             doCallbacks(Choreographer.CALLBACK_ANIMATION, frameTimeNanos);
 
@@ -822,13 +839,13 @@ public final class Choreographer {
         @Override
         public void handleMessage(Message msg) {
             switch (msg.what) {
-                case MSG_DO_FRAME:
+                case MSG_DO_FRAME://开始渲染下一帧
                     doFrame(System.nanoTime(), 0);
                     break;
-                case MSG_DO_SCHEDULE_VSYNC:
+                case MSG_DO_SCHEDULE_VSYNC://请求Vsync
                     doScheduleVsync();
                     break;
-                case MSG_DO_SCHEDULE_CALLBACK:
+                case MSG_DO_SCHEDULE_CALLBACK://处理Callback
                     doScheduleCallback(msg.arg1);
                     break;
             }
@@ -845,6 +862,10 @@ public final class Choreographer {
             super(looper, vsyncSource);
         }
 
+        /**
+         * 负责接收 Vsync 回调
+         * @param timestampNanos: start_time，Vsync信号到来的时间
+         * */
         @Override
         public void onVsync(long timestampNanos, int builtInDisplayId, int frame) {
             // Ignore vsync from secondary display.
@@ -888,6 +909,7 @@ public final class Choreographer {
             mFrame = frame;
             Message msg = Message.obtain(mHandler, this);
             msg.setAsynchronous(true);
+            //发小消息，callback=this，所以执行到 run() 方法
             mHandler.sendMessageAtTime(msg, timestampNanos / TimeUtils.NANOS_PER_MS);
         }
 
