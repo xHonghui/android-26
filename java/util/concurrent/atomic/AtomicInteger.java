@@ -55,10 +55,13 @@ public class AtomicInteger extends Number implements java.io.Serializable {
     private static final long serialVersionUID = 6214790243416807050L;
 
     private static final sun.misc.Unsafe U = sun.misc.Unsafe.getUnsafe();
+
+    //value 的内存偏移量
     private static final long VALUE;
 
     static {
         try {
+            //获取value值的内存偏移量
             VALUE = U.objectFieldOffset
                 (AtomicInteger.class.getDeclaredField("value"));
         } catch (ReflectiveOperationException e) {
@@ -152,6 +155,7 @@ public class AtomicInteger extends Number implements java.io.Serializable {
 
     /**
      * Atomically increments by one the current value.
+     * 自增
      *
      * @return the previous value
      */
@@ -161,6 +165,7 @@ public class AtomicInteger extends Number implements java.io.Serializable {
 
     /**
      * Atomically decrements by one the current value.
+     * 自减
      *
      * @return the previous value
      */

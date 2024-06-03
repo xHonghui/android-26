@@ -24,13 +24,11 @@ SystemServer -> SystemServer: startOtherServices() 启动其他服务
 activate SystemServer
 
 '创建IMS服务流程
-SystemServer -> InputManagerService.java: InputManagerService() 创建IMS服务对象
+SystemServer -> InputManagerService.java: InputManagerService(): 创建IMS服务对象
 activate InputManagerService.java
-InputManagerService.java -> InputManagerService.java: nativeInit() 调用native方法进行初始化
-activate InputManagerService.java
-InputManagerService.java -> InputManagerService.cpp: nativeInit() 调用native方法进行初始化
+InputManagerService.java -> InputManagerService.cpp: nativeInit(): 调用native方法进行初始化
 activate InputManagerService.cpp
-InputManagerService.cpp -> NativeInputManager.cpp: NativeInputManager() 创建 NativeInputManager 对象
+InputManagerService.cpp -> NativeInputManager.cpp: 创建 NativeInputManager 对象
 activate NativeInputManager.cpp
 NativeInputManager.cpp -> EventHub.cpp: new EventHub()
 activate EventHub.cpp
@@ -48,11 +46,11 @@ InputReader --> InputManager.cpp: 创建对象成功
 deactivate InputReader
 InputManager.cpp -> InputManager.cpp: initialize() 初始化
 activate InputManager.cpp
-InputManager.cpp -> InputReaderThread: new InputReaderThread()
+InputManager.cpp -> InputReaderThread: new InputReaderThread(inputReader)
 activate InputReaderThread
 InputReaderThread --> InputManager.cpp: 创建成功
 deactivate InputReaderThread
-InputManager.cpp -> InputDispatcherThread: new InputDispatcherThread()
+InputManager.cpp -> InputDispatcherThread: new InputDispatcherThread(inputDispatcher)
 activate InputDispatcherThread
 InputDispatcherThread --> InputManager.cpp: 创建成功
 deactivate InputDispatcherThread
@@ -65,7 +63,6 @@ InputManagerService.cpp -->  InputManagerService.java: InputManagerService.java 
 deactivate InputManagerService.cpp
 InputManagerService.java --> SystemServer: 创建对象成功
 deactivate InputManagerService.java
-deactivate InputManagerService.java
 
 SystemServer -> WindowManagerService: main()创建WMS服务对象
 activate WindowManagerService
@@ -75,19 +72,24 @@ deactivate WindowManagerService
 SystemServer -> SystemServer: addService() 注册服务
 activate SystemServer
 deactivate SystemServer
-
-SystemServer -> InputManagerService.java: start()启动IMS服务
-deactivate SystemServer
-deactivate SystemServer
-deactivate SystemServer
-deactivate SystemServer
-
-'启动服务流程
+SystemServer -> InputManagerService.java: 设置 windowManagerCallbacks()
+note right
+    inputManager.setWindowManagerCallbacks(wm.getInputManagerCallback())
+    设置弹窗管理回调，回调的实现在 windowManagerService 中
+end note
 activate InputManagerService.java
-
-
-
+InputManagerService.java --> SystemServer
 deactivate InputManagerService.java
 
+SystemServer -> InputManagerService.java:start()启动IMS服务
+|||
+'启动服务流程
+activate InputManagerService.java
+deactivate InputManagerService.java
+
+deactivate SystemServer
+deactivate SystemServer
+deactivate SystemServer
+deactivate SystemServer
 
 @enduml

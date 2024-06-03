@@ -1,0 +1,111 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+'IMS服务启动流程
+
+'实体定义
+participant InputManagerService.java
+participant InputManagerService.cpp
+participant InputManager.cpp
+participant InputReaderThread.cpp
+participant InputReader.cpp
+participant EventHub
+participant InputDevice.cpp
+participant KeyboardInputMapper.cpp
+participant InputDispatcherThread.cpp
+participant InputDispatcher.cpp
+
+
+
+
+'开始启动
+activate InputManagerService.java
+InputManagerService.java -> InputManagerService.cpp: nativeStart(): native 层启动函数
+activate InputManagerService.cpp
+InputManagerService.cpp ->  InputManager.cpp: start(): 启动 native 层InputManager
+
+activate InputManager.cpp
+InputManager.cpp -> InputDispatcherThread.cpp: run(): 启动线程
+note right
+    native 层 Thread 启动后最终会走到
+    threadLoop() 方法
+end note
+activate InputDispatcherThread.cpp
+InputDispatcherThread.cpp -> InputDispatcherThread.cpp: threadLoop(): 线程启动
+activate InputDispatcherThread.cpp
+InputDispatcherThread.cpp -> InputDispatcher.cpp: -dispatchOnce(): 分发事件
+deactivate InputDispatcherThread.cpp
+deactivate InputDispatcherThread.cpp
+activate InputDispatcher.cpp
+InputDispatcher.cpp -> InputDispatcher.cpp: dispatchOnceInnerLocked(): 分发事件
+activate InputDispatcher.cpp
+deactivate InputDispatcher.cpp
+InputDispatcher.cpp -> InputDispatcher.cpp: pollOnce(): 进入睡眠
+activate InputDispatcher.cpp
+|||
+
+'InputReader 流程
+InputManager.cpp -> InputReaderThread.cpp: run(): 启动线程
+deactivate InputManager.cpp
+
+note right
+    native 层 Thread 启动后最终会走到
+    threadLoop() 方法
+end note
+activate InputReaderThread.cpp
+InputReaderThread.cpp -> InputReaderThread.cpp: threadLoop(): 线程启动
+activate InputReaderThread.cpp
+InputReaderThread.cpp -> InputReader.cpp: --loopOnce(): 读取事件
+deactivate InputReaderThread.cpp
+deactivate InputReaderThread.cpp
+
+activate InputReader.cpp
+InputReader.cpp -> EventHub: getEvents(): 读取输入事件
+activate EventHub
+deactivate EventHub
+InputReader.cpp -> InputReader.cpp: processEventsLocked(): 处理输入事件
+activate InputReader.cpp
+InputReader.cpp -> InputReader.cpp: processEventsForDeviceLocked(): 处理输入事件
+activate InputReader.cpp
+|||
+InputReader.cpp -> InputReader.cpp: 从输入事件中取出通过设备id，获取输入设备
+InputReader.cpp -> InputDevice.cpp: --process(rawEvents, count): 处理事件
+deactivate InputReader.cpp
+deactivate InputReader.cpp
+deactivate InputReader.cpp
+
+activate InputDevice.cpp
+InputDevice.cpp -> KeyboardInputMapper.cpp: process(): 处理事件
+deactivate InputDevice.cpp
+note right
+    遍历设备输入事件，
+    遍历 mappers 集合对事件进行处理，
+    不同的 mapper 处理不同的事件，
+    这里以 KeyboardInputMapper 举例
+end note
+activate KeyboardInputMapper.cpp
+KeyboardInputMapper.cpp -> KeyboardInputMapper.cpp: processKey() 处理键盘输入
+activate KeyboardInputMapper.cpp
+KeyboardInputMapper.cpp -> KeyboardInputMapper.cpp: 将键盘输入事件封装为 NotifyKeyArgs 对象
+activate KeyboardInputMapper.cpp
+deactivate KeyboardInputMapper.cpp
+KeyboardInputMapper.cpp -> InputDispatcher.cpp: -notifyKey(): 通知 InputDispatcher.cpp
+deactivate KeyboardInputMapper.cpp
+deactivate KeyboardInputMapper.cpp
+|||
+
+'InputDispatcher 流程
+
+deactivate InputDispatcher.cpp
+deactivate InputDispatcher.cpp
+
+
+
+
+
+
+
+deactivate InputManagerService.cpp
+deactivate InputManagerService.java
+
+
+@enduml
