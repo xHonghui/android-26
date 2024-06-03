@@ -1,7 +1,7 @@
 @startuml
 'https://plantuml.com/sequence-diagram
-'IMS服务启动流程
-
+'IMS服务启动流程、事件读取与处理
+autonumber
 '实体定义
 participant InputManagerService.java
 participant InputManagerService.cpp
@@ -32,15 +32,8 @@ end note
 activate InputDispatcherThread.cpp
 InputDispatcherThread.cpp -> InputDispatcherThread.cpp: threadLoop(): 线程启动
 activate InputDispatcherThread.cpp
-InputDispatcherThread.cpp -> InputDispatcher.cpp: -dispatchOnce(): 分发事件
 deactivate InputDispatcherThread.cpp
 deactivate InputDispatcherThread.cpp
-activate InputDispatcher.cpp
-InputDispatcher.cpp -> InputDispatcher.cpp: dispatchOnceInnerLocked(): 分发事件
-activate InputDispatcher.cpp
-deactivate InputDispatcher.cpp
-InputDispatcher.cpp -> InputDispatcher.cpp: pollOnce(): 进入睡眠
-activate InputDispatcher.cpp
 |||
 
 'InputReader 流程
@@ -54,7 +47,7 @@ end note
 activate InputReaderThread.cpp
 InputReaderThread.cpp -> InputReaderThread.cpp: threadLoop(): 线程启动
 activate InputReaderThread.cpp
-InputReaderThread.cpp -> InputReader.cpp: --loopOnce(): 读取事件
+InputReaderThread.cpp -> InputReader.cpp: loopOnce(): 读取事件
 deactivate InputReaderThread.cpp
 deactivate InputReaderThread.cpp
 
@@ -68,7 +61,7 @@ InputReader.cpp -> InputReader.cpp: processEventsForDeviceLocked(): 处理输入
 activate InputReader.cpp
 |||
 InputReader.cpp -> InputReader.cpp: 从输入事件中取出通过设备id，获取输入设备
-InputReader.cpp -> InputDevice.cpp: --process(rawEvents, count): 处理事件
+InputReader.cpp -> InputDevice.cpp: process(rawEvents, count): 处理事件
 deactivate InputReader.cpp
 deactivate InputReader.cpp
 deactivate InputReader.cpp
@@ -88,9 +81,11 @@ activate KeyboardInputMapper.cpp
 KeyboardInputMapper.cpp -> KeyboardInputMapper.cpp: 将键盘输入事件封装为 NotifyKeyArgs 对象
 activate KeyboardInputMapper.cpp
 deactivate KeyboardInputMapper.cpp
-KeyboardInputMapper.cpp -> InputDispatcher.cpp: -notifyKey(): 通知 InputDispatcher.cpp
+KeyboardInputMapper.cpp -> InputDispatcher.cpp: notifyKey(): 通知 InputDispatcher.cpp
 deactivate KeyboardInputMapper.cpp
 deactivate KeyboardInputMapper.cpp
+activate InputDispatcher.cpp
+deactivate InputDispatcher.cpp
 |||
 
 'InputDispatcher 流程

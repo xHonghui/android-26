@@ -1,11 +1,32 @@
 @startuml
 'https://plantuml.com/sequence-diagram
-
+'IMS inputDispatcher 对事件的分发
 autonumber
 
-Alice -> Bob: Authentication Request
-Bob --> Alice: Authentication Response
+participant InputManager.cpp
+participant InputDispatcherThread.cpp
+participant InputDispatcher.cpp
 
-Alice -> Bob: Another authentication Request
-Alice <-- Bob: another authentication Response
+
+activate InputManager.cpp
+InputManager.cpp -> InputDispatcherThread.cpp: run(): 启动线程
+note right
+    native 层 Thread 启动后最终会走到
+    threadLoop() 方法
+end note
+activate InputDispatcherThread.cpp
+InputDispatcherThread.cpp -> InputDispatcherThread.cpp: threadLoop(): 线程启动
+activate InputDispatcherThread.cpp
+InputDispatcherThread.cpp -> InputDispatcher.cpp: dispatchOnce(): 分发事件
+deactivate InputDispatcherThread.cpp
+deactivate InputDispatcherThread.cpp
+activate InputDispatcher.cpp
+InputDispatcher.cpp -> InputDispatcher.cpp: dispatchOnceInnerLocked(): 分发事件
+activate InputDispatcher.cpp
+deactivate InputDispatcher.cpp
+InputDispatcher.cpp -> InputDispatcher.cpp: pollOnce(): 进入睡眠
+activate InputDispatcher.cpp
+deactivate InputDispatcher.cpp
+deactivate InputDispatcher.cpp
+
 @enduml
