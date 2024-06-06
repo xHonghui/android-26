@@ -4,10 +4,17 @@
 autonumber
 
 participant InputManager.cpp
+participant InputReader.cpp
 participant InputDispatcherThread.cpp
 participant InputDispatcher.cpp
+participant Looper.cpp
+participant mConnectionsByFd
+participant Connection.cpp
+participant InputPublisher.cpp
+participant InputChannel.cpp
 
 
+== InputDispatcher 分发流程 ==
 activate InputManager.cpp
 InputManager.cpp -> InputDispatcherThread.cpp: run(): 启动线程
 note right
@@ -21,12 +28,99 @@ InputDispatcherThread.cpp -> InputDispatcher.cpp: dispatchOnce(): 分发事件
 deactivate InputDispatcherThread.cpp
 deactivate InputDispatcherThread.cpp
 activate InputDispatcher.cpp
-InputDispatcher.cpp -> InputDispatcher.cpp: dispatchOnceInnerLocked(): 分发事件
+InputDispatcher.cpp -> InputDispatcher.cpp: dispatchOnceInnerLocked(): 将输入事件分发到目标窗口
 activate InputDispatcher.cpp
+InputDispatcher.cpp -> InputDispatcher.cpp: dispatchKeyLocked(): 寻找目标窗口
+activate InputDispatcher.cpp
+InputDispatcher.cpp -> InputDispatcher.cpp: findFocusedWindowTargetsLocked(): 获取目标窗口
+activate InputDispatcher.cpp
+deactivate InputDispatcher.cpp
+InputDispatcher.cpp -> InputDispatcher.cpp: dispatchEventLocked(): 将输入事件分发到目标窗口
+activate InputDispatcher.cpp
+|||
+
+'遍历所有目标窗口 inputTargets
+loop 遍历目标窗口 inputTargets
+|||
+InputDispatcher.cpp -> InputDispatcher.cpp: getConnectionIndexLocked(inputTarget.inputChannel): 获取目标窗口连接对象索引
+activate InputDispatcher.cpp
+deactivate InputDispatcher.cpp
+InputDispatcher.cpp -> mConnectionsByFd: valueAt(index) 获取连接
+activate mConnectionsByFd
+mConnectionsByFd --> InputDispatcher.cpp: return
+deactivate mConnectionsByFd
+InputDispatcher.cpp -> InputDispatcher.cpp: prepareDispatchCycleLocked(): 开始事件发送
+activate InputDispatcher.cpp
+activate InputDispatcher.cpp
+InputDispatcher.cpp -> InputDispatcher.cpp: enqueueDispatchEntriesLocked(): 事件入队
+activate InputDispatcher.cpp
+InputDispatcher.cpp -> InputDispatcher.cpp: enqueueDispatchEntryLocked(): 将事件添加到目标窗口的 outboundQueue 队列
+activate InputDispatcher.cpp
+InputDispatcher.cpp -> InputDispatcher.cpp: startDispatchCycleLocked(): 开始分发
+activate InputDispatcher.cpp
+InputDispatcher.cpp -> InputPublisher.cpp: publishKeyEvent(): 发布事件
+activate InputPublisher.cpp
+InputPublisher.cpp -> InputChannel.cpp: sendMessage(msg): 通过 socket 连接将事件发送给目标窗口（应用进程）
+activate InputChannel.cpp
+InputChannel.cpp --> InputPublisher.cpp: return
+deactivate InputChannel.cpp
+InputPublisher.cpp --> InputDispatcher.cpp: return status
+deactivate InputPublisher.cpp
+InputDispatcher.cpp -> Connection.cpp: 分发成功，outboundQueue.dequeue(dispatchEntry) 移除事件
+activate Connection.cpp
+Connection.cpp --> InputDispatcher.cpp:
+deactivate Connection.cpp
+InputDispatcher.cpp -> Connection.cpp: waitQueue.enqueueAtTail(dispatchEntry) 添加到 waitQueue
+activate Connection.cpp
+Connection.cpp --> InputDispatcher.cpp: return
+deactivate Connection.cpp
+deactivate InputDispatcher.cpp
+deactivate InputDispatcher.cpp
+deactivate InputDispatcher.cpp
+deactivate InputDispatcher.cpp
+deactivate InputDispatcher.cpp
+|||
+'循环结束
+end
+|||
+
+deactivate InputDispatcher.cpp
+deactivate InputDispatcher.cpp
 deactivate InputDispatcher.cpp
 InputDispatcher.cpp -> InputDispatcher.cpp: pollOnce(): 进入睡眠
 activate InputDispatcher.cpp
 deactivate InputDispatcher.cpp
 deactivate InputDispatcher.cpp
+deactivate InputDispatcher.cpp
+
+
+== InputDispatcher 唤醒流程 ==
+InputReader.cpp -> InputDispatcher.cpp: notifyKey(): 通知 InputDispatcher.cpp
+activate InputReader.cpp
+deactivate InputReader.cpp
+activate InputDispatcher.cpp
+InputDispatcher.cpp -> InputDispatcher.cpp: KeyEntry() 包装事件对象
+activate InputDispatcher.cpp
+deactivate InputDispatcher.cpp
+InputDispatcher.cpp -> InputDispatcher.cpp: enqueueInboundEventLocked() 将 keyEntry 事件添加到 mInboundQueue 队列
+activate InputDispatcher.cpp
+deactivate InputDispatcher.cpp
+InputDispatcher.cpp -> Looper.cpp: wake() 唤醒 Looper
+deactivate InputDispatcher.cpp
+note right
+    Looper 运行在 InputDispatcherThread 线程中，
+    最终会回调其 threadLoop() 函数
+end note
+activate Looper.cpp
+Looper.cpp --> InputDispatcherThread.cpp: threadLoop()
+note left
+    线程被唤醒后会，回到步骤2
+end note
+activate InputDispatcherThread.cpp
+deactivate InputDispatcherThread.cpp
+deactivate Looper.cpp
+
+
+
 
 @enduml

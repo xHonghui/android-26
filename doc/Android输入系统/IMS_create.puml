@@ -1,6 +1,7 @@
 @startuml
 'https://plantuml.com/sequence-diagram
 'IMS创建流程
+autonumber
 
 participant SystemServer
 participant InputManagerService.java
